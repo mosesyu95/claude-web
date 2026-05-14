@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Web</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/vendor/xterm.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h1>Claude Web</h1>
+        <button id="new-session-btn" title="New Session">+</button>
+      </div>
+
+      <div class="sidebar-tabs">
+        <button class="tab active" data-tab="sessions">Sessions</button>
+        <button class="tab" data-tab="history">History</button>
+      </div>
+
+      <div id="tab-sessions" class="tab-content active">
+        <div id="active-sessions-list" class="session-list">
+          <div class="empty-state">No active sessions.<br>Click + to start.</div>
+        </div>
+      </div>
+
+      <div id="tab-history" class="tab-content">
+        <div id="projects-list" class="session-list">
+          <div class="loading">Loading...</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <main id="main">
+      <!-- Main tabs -->
+      <div id="main-tabs">
+        <button class="main-tab active" data-panel="terminal">Terminal</button>
+        <button class="main-tab" data-panel="git">Git</button>
+        <button class="main-tab" data-panel="files">Files</button>
+      </div>
+
+      <!-- Terminal -->
+      <div id="panel-terminal" class="main-panel active">
+        <div id="welcome" class="welcome">
+          <div class="welcome-content">
+            <h2>Claude Web</h2>
+            <p>Web wrapper for Claude CLI</p>
+            <div class="welcome-actions">
+              <button id="welcome-new-btn">Start New Session</button>
+              <button id="welcome-history-btn">Browse History</button>
+            </div>
+          </div>
+        </div>
+        <div id="terminal-container" class="hidden">
+          <div id="terminal-header">
+            <span id="terminal-title">Claude CLI</span>
+            <div class="terminal-actions">
+              <button id="detach-btn" title="Detach">Detach</button>
+              <button id="kill-btn" title="Kill Session">Kill</button>
+            </div>
+          </div>
+          <div id="terminal"></div>
+        </div>
+      </div>
+
+      <!-- Git -->
+      <div id="panel-git" class="main-panel">
+        <div id="git-content" class="panel-scroll">
+          <div class="empty-state">Select a session or enter a directory to view Git status.</div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div id="panel-files" class="main-panel">
+        <div id="files-content" class="panel-scroll">
+          <div class="empty-state">Select a session or enter a directory to browse files.</div>
+        </div>
+      </div>
+
+      <!-- Replay (overlay, not a tab) -->
+      <div id="replay-container" class="hidden">
+        <div id="replay-header">
+          <span id="replay-title">Session History</span>
+          <div class="replay-actions">
+            <button id="resume-btn" class="primary-btn" title="Resume this session">Resume</button>
+            <button id="replay-close-btn">Close</button>
+          </div>
+        </div>
+        <div id="replay-messages"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- New session dialog -->
+  <div id="new-session-dialog" class="dialog hidden">
+    <div class="dialog-content">
+      <h3>New Session</h3>
+      <label for="session-cwd">Working Directory:</label>
+      <select id="session-cwd">
+        <option value="">Loading...</option>
+      </select>
+      <div class="dialog-actions">
+        <button id="dialog-cancel">Cancel</button>
+        <button id="dialog-start" class="primary">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/xterm.js"></script>
+  <script src="/vendor/xterm-addon-fit.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
