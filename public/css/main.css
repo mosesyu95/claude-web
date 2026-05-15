@@ -280,13 +280,8 @@ body {
 @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
 
 /* ---- Raw Terminal ---- */
-#raw-terminal-container { display: flex; flex-direction: column; height: 100%; }
-#raw-terminal-header {
-  display: flex; align-items: center; padding: 6px 14px;
-  background: var(--header-bg); border-bottom: 1px solid var(--border);
-  font-size: 12px; color: var(--text-dim); flex-shrink: 0;
-}
-#raw-terminal { flex: 1; padding: 2px; }
+#panel-raw { overflow: hidden; }
+#raw-terminal { flex: 1; padding: 2px; height: 100%; }
 
 /* ---- Git ---- */
 .git-branch-bar {
@@ -477,24 +472,6 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
-
-/* ---- Mode toggle (Chat/Raw) ---- */
-#mode-toggle {
-  display: flex; gap: 0; padding: 4px 16px 8px;
-  border-top: 1px solid var(--border); background: var(--sidebar-bg);
-  flex-shrink: 0; justify-content: center;
-}
-.mode-btn {
-  padding: 4px 14px; border: 1px solid var(--border);
-  background: var(--card-bg); color: var(--text-dim);
-  cursor: pointer; font-size: 11px;
-}
-.mode-btn:first-child { border-radius: 4px 0 0 4px; }
-.mode-btn:last-child { border-radius: 0 4px 4px 0; border-left: none; }
-.mode-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-#raw-terminal-wrap { flex: 1; overflow: hidden; }
-#raw-terminal-wrap.active-mode { display: flex; flex-direction: column; }
 
 /* ---- Bash Terminal ---- */
 #panel-bash { overflow: hidden; }

@@ -37,6 +37,7 @@
     <main id="main">
       <div id="main-tabs">
         <button class="main-tab active" data-panel="chat">Chat</button>
+        <button class="main-tab" data-panel="raw">Raw</button>
         <button class="main-tab" data-panel="git">Git</button>
         <button class="main-tab" data-panel="files">Files</button>
         <button class="main-tab" data-panel="bash">Bash</button>
@@ -67,16 +68,12 @@
             <textarea id="chat-input" placeholder="Type your message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
             <button id="chat-send-btn">Send</button>
           </div>
-          <!-- Raw/Chat toggle -->
-          <div id="mode-toggle">
-            <button id="mode-chat-btn" class="mode-btn active">Chat</button>
-            <button id="mode-raw-btn" class="mode-btn">Raw</button>
-          </div>
         </div>
-        <!-- Hidden raw terminal -->
-        <div id="raw-terminal-wrap" class="hidden">
-          <div id="raw-terminal"></div>
-        </div>
+      </div>
+
+      <!-- Raw Terminal -->
+      <div id="panel-raw" class="main-panel">
+        <div id="raw-terminal"></div>
       </div>
 
       <!-- Git -->

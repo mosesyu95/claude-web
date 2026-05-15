@@ -16,7 +16,6 @@
   let chatPollTimer = null;
   let chatRenderedCount = 0;
   let chatSessionStartMs = 0;
-  let chatMode = 'chat'; // 'chat' | 'raw'
   let bashTerm = null;
   let bashFitAddon = null;
   let bashWs = null;
@@ -25,6 +24,20 @@
 
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => document.querySelectorAll(s);
+
+  // DOM element references
+  const newSessionDialog = $('#new-session-dialog');
+  const sessionCwdSelect = $('#session-cwd');
+  const activeSessionsList = $('#active-sessions-list');
+  const projectsList = $('#projects-list');
+  const welcomeEl = $('#welcome');
+  const chatContainer = $('#chat-container');
+  const chatMessages = $('#chat-messages');
+  const chatInput = $('#chat-input');
+  const chatSendBtn = $('#chat-send-btn');
+  const replayContainer = $('#replay-container');
+  const gitContent = $('#git-content');
+  const filesContent = $('#files-content');
 
   // ========== Theme ==========
   function initTheme() {
@@ -72,7 +85,7 @@
     $$('.main-panel').forEach(p => p.classList.remove('active'));
     $(`.main-tab[data-panel="${panel}"]`).classList.add('active');
     $(`#panel-${panel}`).classList.add('active');
-    if (panel === 'chat' && rawTerm) setTimeout(() => rawFitAddon?.fit(), 50);
+    if (panel === 'raw' && rawTerm) setTimeout(() => { rawFitAddon?.fit(); rawTerm.focus(); }, 50);
     if (panel === 'bash' && bashTerm) setTimeout(() => bashFitAddon?.fit(), 50);
     if (panel === 'git') loadGit();
     if (panel === 'files') loadFiles();
@@ -148,15 +161,18 @@
 
   function setupRawTerminal(ws) {
     if (rawTerm) rawTerm.dispose();
+    const container = $('#raw-terminal');
     const t = new Terminal({
       cursorBlink: true, fontSize: 14,
       fontFamily: '"SF Mono","Fira Code","Cascadia Code",Menlo,monospace',
       theme: isDark() ? darkTheme() : lightTheme(), allowProposedApi: true,
     });
-    const fa = new FitAddon.FitAddon(); t.loadAddon(fa); t.open($('#raw-terminal')); fa.fit();
+    const fa = new FitAddon.FitAddon(); t.loadAddon(fa); t.open(container);
+    // fit will be called when the raw tab becomes active
+    if ($('#panel-raw').classList.contains('active')) fa.fit();
     t.onData(d => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'pty-input', data: d })); });
     t.onResize(({ cols, rows }) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'resize', cols, rows })); });
-    new ResizeObserver(() => fa?.fit()).observe($('#raw-terminal'));
+    new ResizeObserver(() => { if ($('#panel-raw').classList.contains('active')) fa?.fit(); }).observe(container);
     rawTerm = t; rawFitAddon = fa;
   }
 
@@ -192,20 +208,6 @@
 
   $('#chat-detach-btn').addEventListener('click', () => { if (currentWs) { currentWs.close(); currentWs = null; } stopChatPoll(); welcomeEl.classList.remove('hidden'); chatContainer.classList.add('hidden'); });
   $('#chat-kill-btn').addEventListener('click', () => { if (currentWs) { currentWs.send(JSON.stringify({ type: 'pty-input', data: '\x03' })); setTimeout(() => { if (currentWs) { currentWs.close(); currentWs = null; } }, 500); } stopChatPoll(); welcomeEl.classList.remove('hidden'); chatContainer.classList.add('hidden'); });
-
-  // ========== Mode Toggle ==========
-  $('#mode-chat-btn').addEventListener('click', () => setChatMode('chat'));
-  $('#mode-raw-btn').addEventListener('click', () => setChatMode('raw'));
-
-  function setChatMode(mode) {
-    chatMode = mode;
-    $('#mode-chat-btn').classList.toggle('active', mode === 'chat');
-    $('#mode-raw-btn').classList.toggle('active', mode === 'raw');
-    chatMessages.style.display = mode === 'chat' ? '' : 'none';
-    $('#chat-input-area').style.display = mode === 'chat' ? '' : 'none';
-    $('#raw-terminal-wrap').classList.toggle('hidden', mode === 'chat');
-    if (mode === 'raw' && rawTerm) setTimeout(() => rawFitAddon?.fit(), 50);
-  }
 
   // ========== Session Discovery + Poll ==========
   async function discoverSession() {
