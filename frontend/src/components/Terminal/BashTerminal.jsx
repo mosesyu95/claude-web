@@ -4,18 +4,20 @@ import { FitAddon } from '@xterm/addon-fit'
 import { createWebSocket } from '../../api'
 import '@xterm/xterm/css/xterm.css'
 
-const darkTheme = {
-  background: '#09090b',
-  foreground: '#e4e4e7',
-  cursor: '#7c3aed',
-  selectionBackground: '#7c3aed40',
+const obsidianTheme = {
+  background: '#08080a',
+  foreground: '#e8e8ec',
+  cursor: '#f59e0b',
+  cursorAccent: '#08080a',
+  selectionBackground: 'rgba(245, 158, 11, 0.2)',
 }
 
 const lightTheme = {
-  background: '#fafafa',
-  foreground: '#18181b',
-  cursor: '#7c3aed',
-  selectionBackground: '#7c3aed30',
+  background: '#f8f8fa',
+  foreground: '#1a1a1e',
+  cursor: '#d97706',
+  cursorAccent: '#f8f8fa',
+  selectionBackground: 'rgba(217, 119, 6, 0.15)',
 }
 
 export default function BashTerminal({ cwd, theme, active }) {
@@ -29,17 +31,18 @@ export default function BashTerminal({ cwd, theme, active }) {
     if (!active || initialized || !containerRef.current) return
 
     const term = new Terminal({
-      theme: theme === 'dark' ? darkTheme : lightTheme,
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+      theme: theme === 'dark' ? obsidianTheme : lightTheme,
+      fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
       fontSize: 13,
+      lineHeight: 1.5,
       cursorBlink: true,
       convertEol: true,
+      letterSpacing: 0.3,
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
     term.open(containerRef.current)
 
-    // Delay fit to ensure container is visible
     setTimeout(() => {
       try { fit.fit() } catch {}
 
@@ -53,14 +56,8 @@ export default function BashTerminal({ cwd, theme, active }) {
       ws.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data)
-          if (msg.type === 'pty-data') {
-            term.write(msg.data)
-            return
-          }
-          if (msg.type === 'pty-exit') {
-            term.write('\r\n[Process exited]')
-            return
-          }
+          if (msg.type === 'pty-data') { term.write(msg.data); return }
+          if (msg.type === 'pty-exit') { term.write('\r\n[Process exited]'); return }
         } catch {}
       }
 
@@ -95,11 +92,15 @@ export default function BashTerminal({ cwd, theme, active }) {
 
   useEffect(() => {
     if (termRef.current) {
-      termRef.current.options.theme = theme === 'dark' ? darkTheme : lightTheme
+      termRef.current.options.theme = theme === 'dark' ? obsidianTheme : lightTheme
     }
   }, [theme])
 
   return (
-    <div ref={containerRef} className="h-full w-full bg-[var(--cr-gray-12)]" />
+    <div
+      ref={containerRef}
+      className="h-full w-full"
+      style={{ background: 'var(--obsidian-0)' }}
+    />
   )
 }

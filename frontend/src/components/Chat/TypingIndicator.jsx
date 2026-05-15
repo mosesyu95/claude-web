@@ -1,14 +1,18 @@
 export default function TypingIndicator() {
   return (
     <div className="flex justify-start">
-      <div className="px-3 py-2 rounded-xl bg-[var(--cr-gray-9)] border border-[var(--cr-gray-8)]">
-        <div className="flex gap-1">
+      <div
+        className="px-4 py-3 rounded-2xl rounded-bl-md"
+        style={{ background: 'var(--obsidian-2)', border: '1px solid var(--obsidian-4)' }}
+      >
+        <div className="flex gap-1.5">
           {[0, 1, 2].map(i => (
             <div
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-[var(--cr-gray-5)]"
+              className="w-1.5 h-1.5 rounded-full"
               style={{
-                animation: 'typingBounce 1.2s ease-in-out infinite',
+                background: 'var(--amber-5)',
+                animation: 'typingBounce 1.4s ease-in-out infinite',
                 animationDelay: `${i * 0.2}s`,
               }}
             />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { sessions as sessionsApi } from '../../api'
-import { X } from 'lucide-react'
+import { X, FolderOpen, Sparkles } from 'lucide-react'
 
 export default function NewSessionDialog({ onStart, onClose }) {
   const [directories, setDirectories] = useState([])
@@ -22,42 +22,101 @@ export default function NewSessionDialog({ onStart, onClose }) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+      onClick={onClose}
+    >
       <div
-        className="w-[400px] rounded-xl bg-[var(--cr-gray-10)] border border-[var(--cr-gray-8)] shadow-2xl overflow-hidden"
+        className="w-[420px] rounded-2xl overflow-hidden"
+        style={{
+          background: 'var(--obsidian-1)',
+          border: '1px solid var(--obsidian-4)',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px var(--obsidian-4)',
+          animation: 'fadeIn 0.2s ease',
+        }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--cr-gray-8)]">
-          <h2 className="text-sm font-semibold text-[var(--cr-gray-2)]">New Session</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-[var(--cr-gray-8)] transition-colors">
-            <X size={14} className="text-[var(--cr-gray-5)]" />
-          </button>
+        {/* Header with gradient */}
+        <div className="relative px-5 pt-5 pb-4">
+          <div
+            className="absolute top-0 left-0 right-0 h-[2px]"
+            style={{ background: 'linear-gradient(90deg, var(--amber-6), var(--amber-4), var(--amber-6))', backgroundSize: '200% 100%', animation: 'gradientShift 6s ease infinite' }}
+          />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, var(--amber-7), var(--amber-5))', boxShadow: '0 2px 8px var(--glow-amber-strong)' }}
+              >
+                <Sparkles size={16} className="text-white" />
+              </div>
+              <div>
+                <h2 className="text-[14px] font-bold" style={{ color: 'var(--text-primary)' }}>New Session</h2>
+                <p className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Choose a working directory</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
+            >
+              <X size={14} />
+            </button>
+          </div>
         </div>
-        <div className="p-4">
-          <label className="block text-xs text-[var(--cr-gray-5)] mb-1.5">Working Directory</label>
-          <select
-            value={selected}
-            onChange={e => setSelected(e.target.value)}
-            className="w-full rounded-lg bg-[var(--cr-gray-9)] border border-[var(--cr-gray-8)] px-3 py-2 text-sm text-[var(--cr-gray-2)] focus:outline-none focus:border-[var(--cr-brand-6)] transition-colors"
-          >
-            {directories.map(d => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
+
+        {/* Directory selector */}
+        <div className="px-5 pb-4">
+          <label className="block text-[11px] font-semibold mb-2 uppercase tracking-wider" style={{ color: 'var(--text-ghost)' }}>
+            Working Directory
+          </label>
+          <div className="relative">
+            <FolderOpen size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-ghost)' }} />
+            <select
+              value={selected}
+              onChange={e => setSelected(e.target.value)}
+              className="w-full rounded-xl py-2.5 pl-9 pr-3 text-[13px] focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
+              style={{
+                background: 'var(--obsidian-2)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--obsidian-4)',
+                fontFamily: 'var(--font-mono)',
+              }}
+              onFocus={e => { e.target.style.borderColor = 'var(--amber-6)'; e.target.style.boxShadow = '0 0 0 3px var(--glow-amber)' }}
+              onBlur={e => { e.target.style.borderColor = 'var(--obsidian-4)'; e.target.style.boxShadow = 'none' }}
+            >
+              {directories.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex justify-end gap-2 px-4 py-3 border-t border-[var(--cr-gray-8)]">
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 px-5 py-4" style={{ background: 'var(--obsidian-2)', borderTop: '1px solid var(--obsidian-4)' }}>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-sm rounded-lg text-[var(--cr-gray-4)] hover:bg-[var(--cr-gray-8)] transition-colors"
+            className="px-4 py-2 text-[12px] font-medium rounded-xl transition-all duration-200"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             Cancel
           </button>
           <button
             onClick={() => selected && onStart(selected)}
             disabled={!selected}
-            className="px-4 py-1.5 text-sm rounded-lg bg-[var(--cr-brand-6)] text-white hover:bg-[var(--cr-brand-7)] disabled:opacity-40 transition-colors"
+            className="px-5 py-2 text-[12px] font-semibold rounded-xl transition-all duration-300"
+            style={{
+              background: selected ? 'linear-gradient(135deg, var(--amber-7), var(--amber-5))' : 'var(--obsidian-4)',
+              color: selected ? 'white' : 'var(--text-ghost)',
+              boxShadow: selected ? '0 2px 12px var(--glow-amber-strong)' : 'none',
+            }}
           >
-            Start
+            Start Session
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from 'react'
-import { MessageSquare, Zap } from 'lucide-react'
+import { useRef, useEffect } from 'react'
+import { MessageSquare, Zap, ArrowDown } from 'lucide-react'
 import ChatBubble from './ChatBubble'
 import ChatInput from './ChatInput'
 import TypingIndicator from './TypingIndicator'
@@ -15,44 +15,77 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
 
   if (!session) {
     return (
-      <div className="h-full flex flex-col items-center justify-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-[var(--cr-brand-6)]/15 flex items-center justify-center">
-          <MessageSquare size={28} className="text-[var(--cr-brand-5)]" />
-        </div>
-        <h2 className="text-lg font-semibold text-[var(--cr-gray-2)]">Welcome to Claude Web</h2>
-        <p className="text-sm text-[var(--cr-gray-5)]">Start a new session to begin</p>
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={onStartNew}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--cr-brand-6)] text-white hover:bg-[var(--cr-brand-7)] transition-colors"
+      <div className="h-full flex flex-col items-center justify-center gap-6" style={{ animation: 'fadeIn 0.5s ease' }}>
+        {/* Animated glow ring */}
+        <div className="relative">
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, var(--amber-7), var(--amber-5))',
+              boxShadow: '0 4px 24px var(--glow-amber-strong), 0 0 60px var(--glow-amber)',
+              animation: 'pulseGlow 3s ease-in-out infinite',
+            }}
           >
-            Start New Session
-          </button>
+            <MessageSquare size={32} className="text-white" />
+          </div>
         </div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-1.5" style={{ color: 'var(--text-primary)' }}>Welcome to Claude</h2>
+          <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>Start a new session to begin coding with AI</p>
+        </div>
+        <button
+          onClick={onStartNew}
+          className="px-6 py-2.5 text-[13px] font-semibold rounded-xl transition-all duration-300"
+          style={{
+            background: 'linear-gradient(135deg, var(--amber-7), var(--amber-5))',
+            color: 'white',
+            boxShadow: '0 2px 12px var(--glow-amber-strong)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 20px var(--glow-amber-strong)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 12px var(--glow-amber-strong)' }}
+        >
+          Start New Session
+        </button>
       </div>
     )
   }
 
   return (
     <div className="h-full flex flex-col">
-      {/* Chat header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--cr-gray-8)] shrink-0">
-        <div className="flex items-center gap-2">
-          <Zap size={14} className={status === 'busy' ? 'text-[var(--cr-success)]' : 'text-[var(--cr-gray-6)]'} />
-          <span className="text-sm font-medium text-[var(--cr-gray-2)] truncate max-w-[300px]">
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-5 py-2.5 shrink-0"
+        style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{
+              background: status === 'busy' ? 'var(--status-success)' : 'var(--obsidian-6)',
+              boxShadow: status === 'busy' ? '0 0 8px var(--glow-success)' : 'none',
+              animation: status === 'busy' ? 'pulseGlow 2s ease-in-out infinite' : 'none',
+            }}
+          />
+          <span className="text-[13px] font-semibold truncate max-w-[300px]" style={{ color: 'var(--text-primary)' }}>
             {session.title || 'Session'}
           </span>
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
           <button
             onClick={onDetach}
-            className="px-2.5 py-1 text-xs rounded-md text-[var(--cr-gray-4)] hover:text-[var(--cr-gray-2)] hover:bg-[var(--cr-gray-8)] transition-colors"
+            className="px-3 py-1 text-[11px] font-medium rounded-md transition-all duration-200"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             Detach
           </button>
           <button
             onClick={onKill}
-            className="px-2.5 py-1 text-xs rounded-md text-[var(--cr-error)] hover:bg-[var(--cr-error)]/15 transition-colors"
+            className="px-3 py-1 text-[11px] font-medium rounded-md transition-all duration-200"
+            style={{ color: 'var(--status-error)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--glow-error)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             Kill
           </button>
@@ -60,11 +93,15 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
       </div>
 
       {/* Messages */}
-      <div ref={messagesRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-        {messages.map((turn, i) => (
-          <ChatBubble key={i} turn={turn} />
-        ))}
-        {status === 'busy' && <TypingIndicator />}
+      <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="max-w-[800px] mx-auto space-y-4">
+          {messages.map((turn, i) => (
+            <div key={i} style={{ animation: `fadeIn 0.3s ease ${Math.min(i * 30, 200)}ms both` }}>
+              <ChatBubble turn={turn} />
+            </div>
+          ))}
+          {status === 'busy' && <TypingIndicator />}
+        </div>
       </div>
 
       {/* Input */}

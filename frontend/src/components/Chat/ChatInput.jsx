@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
-import { Send } from 'lucide-react'
+import { Send, CornerDownLeft } from 'lucide-react'
 
 export default function ChatInput({ onSend, disabled }) {
   const [text, setText] = useState('')
+  const [focused, setFocused] = useState(false)
   const ref = useRef()
 
   const handleSend = useCallback(() => {
@@ -20,29 +21,57 @@ export default function ChatInput({ onSend, disabled }) {
   }, [handleSend])
 
   return (
-    <div className="flex items-end gap-2 px-4 py-3 border-t border-[var(--cr-gray-8)] shrink-0">
-      <textarea
-        ref={ref}
-        value={text}
-        onChange={e => setText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        placeholder={disabled ? 'Waiting for response...' : 'Type a message... (Enter to send, Shift+Enter for newline)'}
-        rows={1}
-        className="flex-1 resize-none rounded-lg bg-[var(--cr-gray-9)] border border-[var(--cr-gray-8)] px-3 py-2 text-sm text-[var(--cr-gray-2)] placeholder:text-[var(--cr-gray-6)] focus:outline-none focus:border-[var(--cr-brand-6)] transition-colors min-h-[36px] max-h-[120px]"
-        style={{ height: 'auto' }}
-        onInput={(e) => {
-          e.target.style.height = 'auto'
-          e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
-        }}
-      />
-      <button
-        onClick={handleSend}
-        disabled={!text.trim() || disabled}
-        className="p-2 rounded-lg bg-[var(--cr-brand-6)] text-white hover:bg-[var(--cr-brand-7)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
-      >
-        <Send size={16} />
-      </button>
+    <div className="px-5 py-3 shrink-0" style={{ background: 'var(--obsidian-1)', borderTop: '1px solid var(--obsidian-4)' }}>
+      <div className="max-w-[800px] mx-auto">
+        <div
+          className="flex items-end gap-2 rounded-xl px-4 py-2.5 transition-all duration-300"
+          style={{
+            background: 'var(--obsidian-2)',
+            border: `1px solid ${focused ? 'var(--amber-6)' : 'var(--obsidian-4)'}`,
+            boxShadow: focused ? '0 0 0 3px var(--glow-amber)' : 'none',
+          }}
+        >
+          <textarea
+            ref={ref}
+            value={text}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            disabled={disabled}
+            placeholder={disabled ? 'Waiting for response...' : 'Ask Claude anything...'}
+            rows={1}
+            className="flex-1 resize-none bg-transparent text-[13px] focus:outline-none min-h-[24px] max-h-[120px]"
+            style={{
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-ui)',
+            }}
+            onInput={(e) => {
+              e.target.style.height = 'auto'
+              e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
+            }}
+          />
+          <div className="flex items-center gap-2 shrink-0 pb-0.5">
+            {!disabled && (
+              <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-ghost)' }}>
+                <CornerDownLeft size={10} /> send
+              </span>
+            )}
+            <button
+              onClick={handleSend}
+              disabled={!text.trim() || disabled}
+              className="p-1.5 rounded-lg transition-all duration-200"
+              style={{
+                background: text.trim() && !disabled ? 'linear-gradient(135deg, var(--amber-7), var(--amber-5))' : 'var(--obsidian-4)',
+                color: text.trim() && !disabled ? 'white' : 'var(--text-ghost)',
+                boxShadow: text.trim() && !disabled ? '0 2px 8px var(--glow-amber)' : 'none',
+              }}
+            >
+              <Send size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

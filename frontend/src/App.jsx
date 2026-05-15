@@ -24,25 +24,19 @@ export default function App() {
   const { theme, toggleTheme } = useTheme()
   const wsHook = useWebSocket()
 
-  // Main state
   const [activeMainTab, setActiveMainTab] = useState('chat')
   const [showNewSession, setShowNewSession] = useState(false)
   const [activeSessions, setActiveSessions] = useState(new Map())
 
-  // Chat state
-  const [chatSession, setChatSession] = useState(null) // { sessionId, cwd, title, ws }
+  const [chatSession, setChatSession] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
-  const [chatStatus, setChatStatus] = useState('idle') // idle | busy
+  const [chatStatus, setChatStatus] = useState('idle')
   const chatPollRef = useRef(null)
   const chatRenderedRef = useRef(0)
 
-  // Replay state
-  const [replay, setReplay] = useState(null) // { sessionId, projectDir, cwd, title, turns }
-
-  // Terminal refs
+  const [replay, setReplay] = useState(null)
   const rawTermRef = useRef(null)
 
-  // Session management
   const addLocalSession = useCallback((id, data) => {
     setActiveSessions(prev => {
       const next = new Map(prev)
@@ -51,15 +45,6 @@ export default function App() {
     })
   }, [])
 
-  const removeLocalSession = useCallback((id) => {
-    setActiveSessions(prev => {
-      const next = new Map(prev)
-      next.delete(id)
-      return next
-    })
-  }, [])
-
-  // Start new PTY session
   const startNewSession = useCallback((cwd) => {
     setChatMessages([])
     chatRenderedRef.current = 0
@@ -90,7 +75,6 @@ export default function App() {
     setActiveMainTab('chat')
   }, [wsHook, addLocalSession])
 
-  // Resume existing session
   const resumeSession = useCallback((sessionId, cwd, title) => {
     setChatMessages([])
     chatRenderedRef.current = 0
@@ -120,7 +104,6 @@ export default function App() {
     setActiveMainTab('chat')
   }, [wsHook, addLocalSession])
 
-  // Discover session file
   const discoverSession = useCallback((cwd, sessionId) => {
     let attempts = 0
     const timer = setInterval(async () => {
@@ -137,7 +120,6 @@ export default function App() {
     }, 2000)
   }, [])
 
-  // Poll chat messages
   const startChatPoll = useCallback((sessionId) => {
     if (chatPollRef.current) clearInterval(chatPollRef.current)
     chatPollRef.current = setInterval(async () => {
@@ -151,7 +133,6 @@ export default function App() {
     }, 3000)
   }, [])
 
-  // Send chat message
   const sendChatMessage = useCallback((text) => {
     if (!text.trim()) return
     wsHook.send({ type: 'pty-input', data: text + '\n' })
@@ -159,7 +140,6 @@ export default function App() {
     setChatMessages(prev => [...prev, { role: 'user', parts: [{ type: 'text', text }] }])
   }, [wsHook])
 
-  // Detach session
   const detachSession = useCallback(() => {
     wsHook.close()
     setChatSession(null)
@@ -169,7 +149,6 @@ export default function App() {
     rawTermRef.current?.disconnect()
   }, [wsHook])
 
-  // Kill session
   const killSession = useCallback(() => {
     wsHook.send({ type: 'pty-input', data: '\x03' })
     setTimeout(() => wsHook.send({ type: 'pty-input', data: '\x03' }), 1000)
@@ -183,7 +162,6 @@ export default function App() {
     }, 2000)
   }, [wsHook])
 
-  // Keyboard shortcut
   useEffect(() => {
     const handler = (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'N') {
@@ -195,7 +173,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // Cleanup poll on unmount
   useEffect(() => () => {
     if (chatPollRef.current) clearInterval(chatPollRef.current)
   }, [])
@@ -217,8 +194,9 @@ export default function App() {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Main tabs */}
-        <div className="flex items-center border-b border-[var(--cr-gray-8)] bg-[var(--cr-gray-10)] dark:bg-[var(--cr-gray-11)] px-1 shrink-0">
+        {/* Tab bar */}
+        <div className="flex items-center gap-0.5 px-3 py-1.5 shrink-0"
+          style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}>
           {MAIN_TABS.map(tab => {
             const Icon = tab.icon
             const active = activeMainTab === tab.key
@@ -226,21 +204,27 @@ export default function App() {
               <button
                 key={tab.key}
                 onClick={() => setActiveMainTab(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  active
-                    ? 'border-[var(--cr-brand-6)] text-[var(--cr-brand-5)]'
-                    : 'border-transparent text-[var(--cr-gray-5)] hover:text-[var(--cr-gray-3)]'
-                }`}
+                className="relative flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-md transition-all duration-200"
+                style={{
+                  color: active ? 'var(--amber-5)' : 'var(--text-tertiary)',
+                  background: active ? 'var(--glow-amber)' : 'transparent',
+                }}
               >
-                <Icon size={14} />
+                <Icon size={13} strokeWidth={active ? 2.2 : 1.8} />
                 {tab.label}
+                {active && (
+                  <span
+                    className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
+                    style={{ background: 'linear-gradient(90deg, var(--amber-6), var(--amber-4))' }}
+                  />
+                )}
               </button>
             )
           })}
         </div>
 
         {/* Tab panels */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative" style={{ background: 'var(--obsidian-0)' }}>
           <div className={`h-full ${activeMainTab === 'chat' ? '' : 'hidden'}`}>
             <ChatPanel
               session={chatSession}
@@ -267,12 +251,8 @@ export default function App() {
         </div>
       </main>
 
-      {/* Modals */}
       {showNewSession && (
-        <NewSessionDialog
-          onStart={startNewSession}
-          onClose={() => setShowNewSession(false)}
-        />
+        <NewSessionDialog onStart={startNewSession} onClose={() => setShowNewSession(false)} />
       )}
       {replay && (
         <ReplayOverlay

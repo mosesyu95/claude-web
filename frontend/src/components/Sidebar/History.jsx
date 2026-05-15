@@ -25,48 +25,71 @@ export default function History({ onOpenConversation, onResumeSession }) {
   }
 
   if (!loaded) {
-    return <div className="p-3 text-xs text-[var(--cr-gray-5)]">Loading...</div>
+    return (
+      <div className="p-3">
+        <div className="h-4 rounded-md animate-pulse" style={{ background: 'var(--obsidian-3)' }} />
+      </div>
+    )
   }
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-32 text-[var(--cr-gray-5)] text-xs">
-        <FolderClock size={20} className="mb-2 opacity-40" />
-        No history
+      <div className="flex flex-col items-center justify-center h-40" style={{ color: 'var(--text-ghost)' }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: 'var(--obsidian-3)' }}>
+          <FolderClock size={18} style={{ color: 'var(--text-ghost)' }} />
+        </div>
+        <span className="text-[11px] font-medium">No history</span>
       </div>
     )
   }
 
   return (
-    <div className="py-1">
-      {projects.map(project => (
-        <div key={project.dirName}>
+    <div className="py-2 px-2">
+      {projects.map((project, pi) => (
+        <div key={project.dirName} style={{ animation: `slideInRight 0.3s ease ${pi * 30}ms both` }}>
           <button
             onClick={() => toggleExpand(project.dirName)}
-            className="w-full text-left px-3 py-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--cr-gray-3)] hover:bg-[var(--cr-gray-8)] transition-colors"
+            className="w-full text-left px-2.5 py-2 flex items-center gap-1.5 rounded-lg text-[12px] font-medium transition-all duration-200"
+            style={{ color: 'var(--text-secondary)' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--obsidian-3)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            {expanded[project.dirName] ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-            <span className="truncate">{shortProject(project.projectDir)}</span>
-            <span className="ml-auto text-[var(--cr-gray-6)] text-[10px)]">{project.sessions?.length || 0}</span>
+            {expanded[project.dirName]
+              ? <ChevronDown size={12} style={{ color: 'var(--text-tertiary)' }} />
+              : <ChevronRight size={12} style={{ color: 'var(--text-tertiary)' }} />
+            }
+            <span className="truncate flex-1">{shortProject(project.projectDir)}</span>
+            <span
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded-md"
+              style={{ color: 'var(--text-ghost)', background: 'var(--obsidian-3)' }}
+            >
+              {project.sessions?.length || 0}
+            </span>
           </button>
           {expanded[project.dirName] && project.sessions && (
-            <div>
+            <div className="ml-2 pl-2.5" style={{ borderLeft: '1px solid var(--obsidian-4)' }}>
               {project.sessions.map(session => (
                 <div
                   key={session.sessionId}
-                  className="group flex items-center gap-1 pl-6 pr-3 py-1 text-xs text-[var(--cr-gray-4)] hover:bg-[var(--cr-gray-8)] transition-colors cursor-pointer"
+                  className="group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-all duration-200"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-3)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
                   onClick={() => onOpenConversation(session.sessionId, project.projectDir, project.cwd, session.title)}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="truncate">{session.title || 'Untitled'}</div>
-                    <div className="text-[10px] text-[var(--cr-gray-6)]">{timeAgo(session.modified)}</div>
+                    <div className="truncate text-[12px]">{session.title || 'Untitled'}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-ghost)' }}>{timeAgo(session.modified)}</div>
                   </div>
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
                       onResumeSession(session.sessionId, project.cwd, session.title)
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded text-[var(--cr-brand-5)] hover:bg-[var(--cr-brand-6)]/20 transition-all"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md transition-all duration-200"
+                    style={{ color: 'var(--amber-5)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--glow-amber)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     title="Resume"
                   >
                     <Play size={10} />

@@ -1,37 +1,40 @@
-import { useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react'
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
-const darkTheme = {
-  background: '#09090b',
-  foreground: '#e4e4e7',
-  cursor: '#7c3aed',
-  selectionBackground: '#7c3aed40',
+const obsidianTheme = {
+  background: '#08080a',
+  foreground: '#e8e8ec',
+  cursor: '#f59e0b',
+  cursorAccent: '#08080a',
+  selectionBackground: 'rgba(245, 158, 11, 0.2)',
+  selectionForeground: '#e8e8ec',
   black: '#18181b',
-  red: '#ef4444',
-  green: '#10b981',
-  yellow: '#f59e0b',
-  blue: '#3b82f6',
-  magenta: '#a855f7',
-  cyan: '#06b6d4',
-  white: '#e4e4e7',
+  red: '#f87171',
+  green: '#34d399',
+  yellow: '#fbbf24',
+  blue: '#60a5fa',
+  magenta: '#c084fc',
+  cyan: '#67e8f9',
+  white: '#e8e8ec',
   brightBlack: '#52525b',
-  brightRed: '#f87171',
-  brightGreen: '#34d399',
-  brightYellow: '#fbbf24',
-  brightBlue: '#60a5fa',
-  brightMagenta: '#c084fc',
-  brightCyan: '#22d3ee',
+  brightRed: '#fca5a5',
+  brightGreen: '#6ee7b7',
+  brightYellow: '#fde68a',
+  brightBlue: '#93c5fd',
+  brightMagenta: '#d8b4fe',
+  brightCyan: '#a5f3fc',
   brightWhite: '#fafafa',
 }
 
 const lightTheme = {
-  background: '#fafafa',
-  foreground: '#18181b',
-  cursor: '#7c3aed',
-  selectionBackground: '#7c3aed30',
-  black: '#18181b',
+  background: '#f8f8fa',
+  foreground: '#1a1a1e',
+  cursor: '#d97706',
+  cursorAccent: '#f8f8fa',
+  selectionBackground: 'rgba(217, 119, 6, 0.15)',
+  black: '#1a1a1e',
   red: '#dc2626',
   green: '#059669',
   yellow: '#d97706',
@@ -59,11 +62,13 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     if (!containerRef.current || termRef.current) return
 
     const term = new Terminal({
-      theme: theme === 'dark' ? darkTheme : lightTheme,
-      fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+      theme: theme === 'dark' ? obsidianTheme : lightTheme,
+      fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
       fontSize: 13,
+      lineHeight: 1.5,
       cursorBlink: true,
       convertEol: true,
+      letterSpacing: 0.3,
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -94,10 +99,9 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     }
   }, [])
 
-  // Update theme
   useEffect(() => {
     if (termRef.current) {
-      termRef.current.options.theme = theme === 'dark' ? darkTheme : lightTheme
+      termRef.current.options.theme = theme === 'dark' ? obsidianTheme : lightTheme
     }
   }, [theme])
 
@@ -131,7 +135,11 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
   }))
 
   return (
-    <div ref={containerRef} className="h-full w-full bg-[var(--cr-gray-12)]" />
+    <div
+      ref={containerRef}
+      className="h-full w-full"
+      style={{ background: 'var(--obsidian-0)' }}
+    />
   )
 })
 
