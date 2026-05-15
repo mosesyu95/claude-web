@@ -1,0 +1,97 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --cr-brand-1: #fff7ed;
+  --cr-brand-2: #ffedd5;
+  --cr-brand-3: #fed7aa;
+  --cr-brand-4: #fdba74;
+  --cr-brand-5: #fb923c;
+  --cr-brand-6: #f97316;
+  --cr-brand-7: #ea580c;
+  --cr-brand-8: #c2410c;
+  --cr-brand-9: #9a3412;
+  --cr-brand-10: #7c2d12;
+
+  --cr-gray-1: #fafafa;
+  --cr-gray-2: #f4f4f5;
+  --cr-gray-3: #e4e4e7;
+  --cr-gray-4: #d4d4d8;
+  --cr-gray-5: #a1a1aa;
+  --cr-gray-6: #71717a;
+  --cr-gray-7: #52525b;
+  --cr-gray-8: #3f3f46;
+  --cr-gray-9: #27272a;
+  --cr-gray-10: #18181b;
+  --cr-gray-11: #111111;
+  --cr-gray-12: #09090b;
+
+  --cr-success: #10b981;
+  --cr-warning: #f59e0b;
+  --cr-error: #ef4444;
+  --cr-info: #3b82f6;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dark body {
+  background: var(--cr-gray-12);
+  color: var(--cr-gray-2);
+}
+
+body {
+  background: var(--cr-gray-1);
+  color: var(--cr-gray-10);
+}
+
+.xterm {
+  padding: 8px;
+}
+.xterm-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+.xterm-viewport::-webkit-scrollbar-thumb {
+  background: var(--cr-gray-7);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cr-gray-7);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cr-gray-6);
+}
+
+.diff-line-add {
+  background: rgba(16, 185, 129, 0.15);
+}
+.diff-line-del {
+  background: rgba(239, 68, 68, 0.15);
+}
+.diff-line-add .diff-line-num {
+  background: rgba(16, 185, 129, 0.25);
+}
+.diff-line-del .diff-line-num {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
