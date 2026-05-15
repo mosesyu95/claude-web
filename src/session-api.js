@@ -216,7 +216,8 @@ function createSessionRouter() {
     }
   });
 
-  // Get currently running sessions
+  // Get currently active Claude CLI sessions (from ~/.claude/sessions/)
+  // Validates PIDs are still running, resolves session titles
   router.get('/active/list', (req, res) => {
     try {
       const sessionsDir = path.join(CLAUDE_DIR, 'sessions');
@@ -230,10 +231,29 @@ function createSessionRouter() {
       for (const file of files) {
         try {
           const data = JSON.parse(fs.readFileSync(path.join(sessionsDir, file), 'utf-8'));
-          sessions.push(data);
+          const pid = data.pid;
+          // Check if the process is still running
+          if (!isProcessRunning(pid)) continue;
+
+          // Resolve the real sessionId (handle /clear which creates a new one)
+          const realSessionId = resolveActiveSessionId(data);
+          const title = getSessionTitle(realSessionId, data.cwd);
+
+          sessions.push({
+            pid,
+            sessionId: realSessionId,
+            originalSessionId: data.sessionId,
+            cwd: data.cwd,
+            startedAt: data.startedAt,
+            status: data.status || 'unknown',
+            version: data.version || '',
+            title,
+          });
         } catch (e) {}
       }
 
+      // Sort by most recently started
+      sessions.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
       res.json({ sessions });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -436,6 +456,62 @@ function findSessionFile(sessionId, projectDir) {
     const candidate = path.join(PROJECTS_DIR, dir, `${sessionId}.jsonl`);
     if (fs.existsSync(candidate)) return candidate;
   }
+  return null;
+}
+
+function isProcessRunning(pid) {
+  if (!pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function resolveActiveSessionId(sessionData) {
+  const cwd = sessionData.cwd;
+  if (!cwd) return sessionData.sessionId;
+
+  const dirName = cwd.replace(/\//g, '-');
+  const projectDir = path.join(PROJECTS_DIR, dirName);
+
+  if (!fs.existsSync(projectDir)) return sessionData.sessionId;
+
+  try {
+    const files = fs.readdirSync(projectDir).filter(f => f.endsWith('.jsonl') && !f.startsWith('.'));
+    let bestFile = null;
+    let bestMtime = 0;
+
+    for (const f of files) {
+      const stat = fs.statSync(path.join(projectDir, f));
+      if (stat.mtimeMs >= (sessionData.startedAt || 0) && stat.mtimeMs > bestMtime) {
+        bestFile = f;
+        bestMtime = stat.mtimeMs;
+      }
+    }
+
+    if (bestFile) return bestFile.replace('.jsonl', '');
+  } catch (e) {}
+
+  return sessionData.sessionId;
+}
+
+function getSessionTitle(sessionId, cwd) {
+  const dirName = cwd ? cwd.replace(/\//g, '-') : null;
+  const sessionFile = findSessionFile(sessionId, dirName);
+  if (!sessionFile) return null;
+
+  try {
+    const content = fs.readFileSync(sessionFile, 'utf-8');
+    for (const line of content.trim().split('\n')) {
+      try {
+        const r = JSON.parse(line);
+        if (r.type === 'ai-title' && r.aiTitle) return r.aiTitle;
+      } catch (e) {}
+    }
+  } catch (e) {}
+
   return null;
 }
 

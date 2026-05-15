@@ -109,6 +109,8 @@ body {
 .session-title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .session-meta { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 .session-item.active .session-meta { color: rgba(255,255,255,0.7); }
+.status-busy { color: var(--green); }
+.status-idle { color: var(--text-dim); }
 
 .project-group { margin-bottom: 4px; }
 .project-header {

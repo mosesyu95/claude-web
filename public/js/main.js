@@ -269,10 +269,42 @@
   // ========== Active Sessions ==========
   function addActiveSession(id, ws, title, cwd) { activeSessions.set(id, { ws, title, cwd }); renderActiveSessions(); }
 
-  function renderActiveSessions() {
-    if (!activeSessions.size) { activeSessionsList.innerHTML = '<div class="empty-state">No active sessions.<br>Click + to start.</div>'; return; }
+  let activePollTimer = null;
+
+  async function loadActiveClaudeSessions() {
+    try {
+      const data = await (await fetch('/api/sessions/active/list')).json();
+      return data.sessions || [];
+    } catch (e) { return []; }
+  }
+
+  async function renderActiveSessions() {
+    const claudeSessions = await loadActiveClaudeSessions();
+    // Merge: local sessions (started from this web UI) + system-detected sessions
+    const allItems = [];
+
+    // Local sessions from claude-web
+    for (const [id, d] of activeSessions) {
+      allItems.push({ sessionId: id, title: d.title || 'Untitled', cwd: d.cwd, source: 'local', status: 'active' });
+    }
+
+    // System-detected sessions (deduplicate by sessionId)
+    const localIds = new Set(allItems.map(s => s.sessionId));
+    for (const s of claudeSessions) {
+      if (!localIds.has(s.sessionId)) {
+        allItems.push({ sessionId: s.sessionId, title: s.title || 'Untitled', cwd: s.cwd, source: 'system', status: s.status, pid: s.pid });
+      } else {
+        // Update status for local sessions that also appear in system
+        const item = allItems.find(i => i.sessionId === s.sessionId);
+        if (item) item.status = s.status;
+      }
+    }
+
+    if (!allItems.length) { activeSessionsList.innerHTML = '<div class="empty-state">No active sessions.<br>Click + to start.</div>'; return; }
+
     const groups = new Map();
-    for (const [id, d] of activeSessions) { const p = shortProject(d.cwd || ''); if (!groups.has(p)) groups.set(p, []); groups.get(p).push({ sessionId: id, ...d }); }
+    for (const s of allItems) { const p = shortProject(s.cwd || ''); if (!groups.has(p)) groups.set(p, []); groups.get(p).push(s); }
+
     activeSessionsList.innerHTML = '';
     for (const [project, sessions] of groups) {
       const g = document.createElement('div'); g.className = 'project-group';
@@ -282,13 +314,28 @@
       h.addEventListener('click', () => { h.classList.toggle('collapsed'); l.classList.toggle('collapsed'); });
       for (const s of sessions) {
         const i = document.createElement('div'); i.className = 'session-item' + (s.sessionId === currentSessionId ? ' active' : '');
-        i.innerHTML = `<div class="session-title">${escapeHtml(s.title || 'Untitled')}</div><div class="session-meta">Active</div>`;
-        i.addEventListener('click', () => { workingDir = s.cwd; switchMainTab('chat'); });
+        const statusLabel = s.status === 'busy' ? '● Busy' : s.status === 'idle' ? '○ Idle' : s.source === 'local' ? '● Active' : '○ Active';
+        const statusClass = s.status === 'busy' ? 'status-busy' : 'status-idle';
+        i.innerHTML = `<div class="session-title">${escapeHtml(s.title)}</div><div class="session-meta"><span class="${statusClass}">${statusLabel}</span>${s.pid ? ` · PID ${s.pid}` : ''}</div>`;
+        i.addEventListener('click', () => {
+          if (s.source === 'local') {
+            workingDir = s.cwd; switchMainTab('chat');
+          } else {
+            // System-detected session: open conversation view
+            const projectDir = s.cwd ? s.cwd.replace(/\//g, '-') : '';
+            openConversation(s.sessionId, projectDir, s.cwd, s.title);
+          }
+        });
         l.appendChild(i);
       }
       g.appendChild(h); g.appendChild(l); activeSessionsList.appendChild(g);
     }
   }
+
+  // Poll active sessions every 5s
+  function startActivePoll() { stopActivePoll(); renderActiveSessions(); activePollTimer = setInterval(renderActiveSessions, 5000); }
+  function stopActivePoll() { if (activePollTimer) { clearInterval(activePollTimer); activePollTimer = null; } }
+  startActivePoll();
 
   // ========== History ==========
   async function loadProjects() {
