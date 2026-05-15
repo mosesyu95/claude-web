@@ -321,9 +321,8 @@
           if (s.source === 'local') {
             workingDir = s.cwd; switchMainTab('chat');
           } else {
-            // System-detected session: open conversation view
-            const projectDir = s.cwd ? s.cwd.replace(/\//g, '-') : '';
-            openConversation(s.sessionId, projectDir, s.cwd, s.title);
+            // System-detected session: resume directly
+            resumeSession(s.sessionId, s.cwd || '');
           }
         });
         l.appendChild(i);
