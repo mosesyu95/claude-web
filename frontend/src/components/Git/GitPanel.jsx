@@ -5,7 +5,7 @@ import { GitBranch, FileCode, ArrowLeft, Plus, Minus, Edit3 } from 'lucide-react
 import DiffViewer from './DiffViewer'
 
 export default function GitPanel({ cwd }) {
-  const [overview, setOverview] = useState(null) // { branch, ahead, behind, staged, unstaged, untracked, commits }
+  const [overview, setOverview] = useState(null) // { branchName, ahead, behind, staged, unstaged, untracked, commits }
   const [loading, setLoading] = useState(false)
   const [diff, setDiff] = useState(null) // { files, title }
   const dir = cwd || window._homeDir || '.'
@@ -17,10 +17,11 @@ export default function GitPanel({ cwd }) {
         gitApi.status(dir),
         gitApi.log(dir),
       ])
+      const branchObj = statusRes?.branch || {}
       setOverview({
-        branch: statusRes?.branch,
-        ahead: statusRes?.ahead,
-        behind: statusRes?.behind,
+        branchName: branchObj.name || '',
+        ahead: branchObj.ahead || 0,
+        behind: branchObj.behind || 0,
         staged: statusRes?.staged || [],
         unstaged: statusRes?.unstaged || [],
         untracked: statusRes?.untracked || [],
@@ -93,7 +94,7 @@ export default function GitPanel({ cwd }) {
       <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--cr-gray-8)]">
         <GitBranch size={14} className="text-[var(--cr-brand-5)]" />
         <span className="px-2 py-0.5 rounded bg-[var(--cr-brand-6)]/15 text-[var(--cr-brand-4)] text-xs font-mono">
-          {overview.branch}
+          {overview.branchName}
         </span>
         {overview.ahead > 0 && <span className="text-[10px] text-[var(--cr-success)]">↑{overview.ahead}</span>}
         {overview.behind > 0 && <span className="text-[10px] text-[var(--cr-error)]">↓{overview.behind}</span>}
