@@ -3,6 +3,7 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const path = require('path');
 const { createPtySession } = require('./src/pty-manager');
+const { createBashSession } = require('./src/bash-manager');
 const { createSessionRouter } = require('./src/session-api');
 const { createFileApiRouter } = require('./src/file-api');
 const { createGitApiRouter } = require('./src/git-api');
@@ -59,6 +60,10 @@ wss.on('connection', (ws, req) => {
       ws.send(JSON.stringify({ type: 'error', message: 'Session not found' }));
       ws.close();
     }
+  } else if (action === 'bash') {
+    const cwd = url.searchParams.get('cwd') || process.env.HOME;
+    createBashSession(ws, cwd);
+
   } else if (action === 'replay') {
     const sessionId = url.searchParams.get('sessionId');
     const projectPath = url.searchParams.get('project');

@@ -10,7 +10,6 @@
 </head>
 <body>
   <div id="app">
-    <!-- Sidebar -->
     <aside id="sidebar">
       <div class="sidebar-header">
         <h1>Claude Web</h1>
@@ -19,18 +18,15 @@
           <button id="new-session-btn" title="New Session">+</button>
         </div>
       </div>
-
       <div class="sidebar-tabs">
         <button class="tab active" data-tab="sessions">Sessions</button>
         <button class="tab" data-tab="history">History</button>
       </div>
-
       <div id="tab-sessions" class="tab-content active">
         <div id="active-sessions-list" class="session-list">
           <div class="empty-state">No active sessions.<br>Click + to start.</div>
         </div>
       </div>
-
       <div id="tab-history" class="tab-content">
         <div id="projects-list" class="session-list">
           <div class="loading">Loading...</div>
@@ -38,17 +34,15 @@
       </div>
     </aside>
 
-    <!-- Main area -->
     <main id="main">
-      <!-- Main tabs -->
       <div id="main-tabs">
         <button class="main-tab active" data-panel="chat">Chat</button>
         <button class="main-tab" data-panel="git">Git</button>
         <button class="main-tab" data-panel="files">Files</button>
-        <button class="main-tab" data-panel="raw-terminal">Raw</button>
+        <button class="main-tab" data-panel="bash">Bash</button>
       </div>
 
-      <!-- Chat (default terminal) -->
+      <!-- Chat -->
       <div id="panel-chat" class="main-panel active">
         <div id="welcome" class="welcome">
           <div class="welcome-content">
@@ -64,24 +58,23 @@
           <div id="chat-header">
             <span id="chat-title">New Session</span>
             <div class="chat-actions">
-              <button id="chat-detach-btn" title="Detach">Detach</button>
-              <button id="chat-kill-btn" title="Kill Session">Kill</button>
+              <button id="chat-detach-btn">Detach</button>
+              <button id="chat-kill-btn">Kill</button>
             </div>
           </div>
           <div id="chat-messages"></div>
           <div id="chat-input-area">
             <textarea id="chat-input" placeholder="Type your message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
-            <button id="chat-send-btn" title="Send">Send</button>
+            <button id="chat-send-btn">Send</button>
+          </div>
+          <!-- Raw/Chat toggle -->
+          <div id="mode-toggle">
+            <button id="mode-chat-btn" class="mode-btn active">Chat</button>
+            <button id="mode-raw-btn" class="mode-btn">Raw</button>
           </div>
         </div>
-      </div>
-
-      <!-- Raw Terminal (xterm.js) -->
-      <div id="panel-raw-terminal" class="main-panel">
-        <div id="raw-terminal-container">
-          <div id="raw-terminal-header">
-            <span>Raw Terminal</span>
-          </div>
+        <!-- Hidden raw terminal -->
+        <div id="raw-terminal-wrap" class="hidden">
           <div id="raw-terminal"></div>
         </div>
       </div>
@@ -89,23 +82,28 @@
       <!-- Git -->
       <div id="panel-git" class="main-panel">
         <div id="git-content" class="panel-scroll">
-          <div class="empty-state">Start a session first to view Git info.</div>
+          <div class="empty-state">Start a session first.</div>
         </div>
       </div>
 
       <!-- Files -->
       <div id="panel-files" class="main-panel">
         <div id="files-content" class="panel-scroll">
-          <div class="empty-state">Start a session first to browse files.</div>
+          <div class="empty-state">Start a session first.</div>
         </div>
       </div>
 
-      <!-- Replay (overlay) -->
+      <!-- Bash -->
+      <div id="panel-bash" class="main-panel">
+        <div id="bash-terminal"></div>
+      </div>
+
+      <!-- Replay overlay -->
       <div id="replay-container" class="hidden">
         <div id="replay-header">
           <span id="replay-title">Session History</span>
           <div class="replay-actions">
-            <button id="resume-btn" class="primary-btn" title="Resume this session">Resume</button>
+            <button id="resume-btn" class="primary-btn">Resume</button>
             <button id="replay-close-btn">Close</button>
           </div>
         </div>
@@ -114,14 +112,11 @@
     </main>
   </div>
 
-  <!-- New session dialog -->
   <div id="new-session-dialog" class="dialog hidden">
     <div class="dialog-content">
       <h3>New Session</h3>
       <label for="session-cwd">Working Directory:</label>
-      <select id="session-cwd">
-        <option value="">Loading...</option>
-      </select>
+      <select id="session-cwd"><option value="">Loading...</option></select>
       <div class="dialog-actions">
         <button id="dialog-cancel">Cancel</button>
         <button id="dialog-start" class="primary">Start</button>
