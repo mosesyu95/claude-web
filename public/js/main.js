@@ -129,11 +129,14 @@
     discoverSession();
   }
 
-  function resumeSession(sessionId, cwd) {
+  let pendingResumeTitle = null;
+
+  function resumeSession(sessionId, cwd, title) {
     workingDir = cwd; chatSessionStartMs = Date.now();
     chatClaudeSessionId = sessionId;
     chatProjectDir = cwd ? cwd.replace(/\//g, '-') : null;
     chatRenderedCount = 0;
+    pendingResumeTitle = title || null;
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${location.host}?action=resume&sessionId=${encodeURIComponent(sessionId)}&cwd=${encodeURIComponent(cwd || '')}`);
     ws.onopen = () => setupRawTerminal(ws);
@@ -150,11 +153,18 @@
       const msg = JSON.parse(event.data);
       if (msg.type === 'session-started') {
         currentSessionId = msg.sessionId;
-        const cwd = sessionCwdSelect.value || currentReplayCwd || '';
-        const title = msg.resumedFrom ? currentReplayTitle || 'Resumed' : cwd ? cwd.replace(window._homeDir || '', '~') : 'New Session';
+        const cwd = sessionCwdSelect.value || currentReplayCwd || workingDir || '';
+        const title = pendingResumeTitle || currentReplayTitle || (cwd ? cwd.replace(window._homeDir || '', '~') : 'New Session');
+        pendingResumeTitle = null;
         addActiveSession(msg.sessionId, currentWs, title, cwd);
         $('#chat-title').textContent = title;
       } else if (msg.type === 'pty-data' && rawTerm) { rawTerm.write(msg.data); }
+      else if (msg.type === 'session-timeout') {
+        stopChatPoll();
+        if (currentWs) { currentWs.close(); currentWs = null; }
+        welcomeEl.classList.remove('hidden'); chatContainer.classList.add('hidden');
+        activeSessions.delete(msg.sessionId); renderActiveSessions();
+      }
       else if (msg.type === 'pty-exit' && rawTerm) { rawTerm.write('\r\n\x1b[33m[Session exited]\x1b[0m\r\n'); stopChatPoll(); }
     } catch (e) { if (rawTerm) rawTerm.write(event.data); }
   }
@@ -322,7 +332,7 @@
             workingDir = s.cwd; switchMainTab('chat');
           } else {
             // System-detected session: resume directly
-            resumeSession(s.sessionId, s.cwd || '');
+            resumeSession(s.sessionId, s.cwd || '', s.title);
           }
         });
         l.appendChild(i);
@@ -403,7 +413,7 @@
   }
 
   $('#replay-close-btn').addEventListener('click', () => replayContainer.classList.add('hidden'));
-  $('#resume-btn').addEventListener('click', () => { if (currentReplaySessionId) resumeSession(currentReplaySessionId, currentReplayCwd || ''); });
+  $('#resume-btn').addEventListener('click', () => { if (currentReplaySessionId) resumeSession(currentReplaySessionId, currentReplayCwd || '', currentReplayTitle); });
 
   // ========== Git ==========
   async function loadGit() {

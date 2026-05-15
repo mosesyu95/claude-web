@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@homebridge/node-pty-prebuilt-multiarch": "^0.13.1",
+    "dotenv": "^17.4.2",
     "express": "^4.21.0",
     "ws": "^8.18.0"
   }

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');
@@ -13,6 +14,7 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 const PORT = process.env.PORT || 3000;
+const SESSION_TIMEOUT_MS = parseInt(process.env.SESSION_TIMEOUT_MS) || 1800000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/sessions', createSessionRouter());
@@ -120,4 +122,67 @@ async function handleReplay(ws, sessionId, projectPath) {
 
 server.listen(PORT, () => {
   console.log(`Claude Web running at http://localhost:${PORT}`);
+  console.log(`Session timeout: ${SESSION_TIMEOUT_MS / 60000} minutes`);
 });
+
+// ========== Session Timeout Checker ==========
+// Kill claude-web-started sessions that have had no user input for SESSION_TIMEOUT_MS
+// Only kills sessions where Claude is idle (not actively working)
+function checkSessionTimeouts() {
+  const now = Date.now();
+  for (const [sessionId, session] of activeSessions) {
+    const idleMs = now - (session.lastInputTime || 0);
+    if (idleMs < SESSION_TIMEOUT_MS) continue;
+
+    // Check if the Claude process is still idle (not busy)
+    // Read the session file from ~/.claude/sessions/{PID}.json
+    if (session.pid) {
+      try {
+        const fs = require('fs');
+        const os = require('os');
+        const sessionFile = path.join(os.homedir(), '.claude', 'sessions', `${session.pid}.json`);
+        if (fs.existsSync(sessionFile)) {
+          const data = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+          if (data.status === 'busy') continue; // Don't kill busy sessions
+        }
+      } catch (e) {}
+    }
+
+    console.log(`[timeout] Session ${sessionId} idle for ${Math.round(idleMs / 60000)}min, killing...`);
+    killSession(sessionId, session);
+  }
+}
+
+function killSession(sessionId, session) {
+  const pty = session.pty;
+  if (!pty) {
+    activeSessions.delete(sessionId);
+    return;
+  }
+
+  // Send first SIGINT (Ctrl+C)
+  try { pty.write('\x03'); } catch (e) {}
+
+  // Send second SIGINT after 1 second
+  setTimeout(() => {
+    try { pty.write('\x03'); } catch (e) {}
+  }, 1000);
+
+  // Force kill after 5 seconds if still alive
+  setTimeout(() => {
+    try {
+      if (pty.pid) process.kill(pty.pid, 'SIGKILL');
+    } catch (e) {}
+    activeSessions.delete(sessionId);
+  }, 5000);
+
+  // Notify WebSocket client
+  const ws = session.ws;
+  if (ws && ws.readyState === ws.OPEN) {
+    ws.send(JSON.stringify({ type: 'pty-data', data: '\r\n\x1b[33m[Session auto-closed: idle timeout]\x1b[0m\r\n' }));
+    ws.send(JSON.stringify({ type: 'session-timeout', sessionId }));
+  }
+}
+
+// Run check every 60 seconds
+setInterval(checkSessionTimeouts, 60000);

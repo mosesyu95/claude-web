@@ -44,6 +44,8 @@ function createPtySession(ws, cwd, activeSessions, options = {}) {
     history: [],
     cwd: cwd || os.homedir(),
     resumedFrom: options.resumeSessionId || null,
+    lastInputTime: Date.now(),
+    pid: ptyProcess.pid,
   };
 
   activeSessions.set(sessionId, session);
@@ -66,6 +68,7 @@ function createPtySession(ws, cwd, activeSessions, options = {}) {
       const msg = JSON.parse(raw.toString());
       if (msg.type === 'pty-input') {
         ptyProcess.write(msg.data);
+        session.lastInputTime = Date.now();
       } else if (msg.type === 'resize') {
         ptyProcess.resize(msg.cols || 120, msg.rows || 36);
       }
