@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,10 @@
     <aside id="sidebar">
       <div class="sidebar-header">
         <h1>Claude Web</h1>
-        <button id="new-session-btn" title="New Session">+</button>
+        <div class="sidebar-header-actions">
+          <button id="theme-toggle-btn" title="Toggle theme">🌙</button>
+          <button id="new-session-btn" title="New Session">+</button>
+        </div>
       </div>
 
       <div class="sidebar-tabs">
@@ -39,13 +42,14 @@
     <main id="main">
       <!-- Main tabs -->
       <div id="main-tabs">
-        <button class="main-tab active" data-panel="terminal">Terminal</button>
+        <button class="main-tab active" data-panel="chat">Chat</button>
         <button class="main-tab" data-panel="git">Git</button>
         <button class="main-tab" data-panel="files">Files</button>
+        <button class="main-tab" data-panel="raw-terminal">Raw</button>
       </div>
 
-      <!-- Terminal -->
-      <div id="panel-terminal" class="main-panel active">
+      <!-- Chat (default terminal) -->
+      <div id="panel-chat" class="main-panel active">
         <div id="welcome" class="welcome">
           <div class="welcome-content">
             <h2>Claude Web</h2>
@@ -56,33 +60,47 @@
             </div>
           </div>
         </div>
-        <div id="terminal-container" class="hidden">
-          <div id="terminal-header">
-            <span id="terminal-title">Claude CLI</span>
-            <div class="terminal-actions">
-              <button id="detach-btn" title="Detach">Detach</button>
-              <button id="kill-btn" title="Kill Session">Kill</button>
+        <div id="chat-container" class="hidden">
+          <div id="chat-header">
+            <span id="chat-title">New Session</span>
+            <div class="chat-actions">
+              <button id="chat-detach-btn" title="Detach">Detach</button>
+              <button id="chat-kill-btn" title="Kill Session">Kill</button>
             </div>
           </div>
-          <div id="terminal"></div>
+          <div id="chat-messages"></div>
+          <div id="chat-input-area">
+            <textarea id="chat-input" placeholder="Type your message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+            <button id="chat-send-btn" title="Send">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw Terminal (xterm.js) -->
+      <div id="panel-raw-terminal" class="main-panel">
+        <div id="raw-terminal-container">
+          <div id="raw-terminal-header">
+            <span>Raw Terminal</span>
+          </div>
+          <div id="raw-terminal"></div>
         </div>
       </div>
 
       <!-- Git -->
       <div id="panel-git" class="main-panel">
         <div id="git-content" class="panel-scroll">
-          <div class="empty-state">Select a session or enter a directory to view Git status.</div>
+          <div class="empty-state">Start a session first to view Git info.</div>
         </div>
       </div>
 
       <!-- Files -->
       <div id="panel-files" class="main-panel">
         <div id="files-content" class="panel-scroll">
-          <div class="empty-state">Select a session or enter a directory to browse files.</div>
+          <div class="empty-state">Start a session first to browse files.</div>
         </div>
       </div>
 
-      <!-- Replay (overlay, not a tab) -->
+      <!-- Replay (overlay) -->
       <div id="replay-container" class="hidden">
         <div id="replay-header">
           <span id="replay-title">Session History</span>

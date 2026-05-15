@@ -179,6 +179,67 @@ function createSessionRouter() {
     }
   });
 
+  // Find the most recent session in a project directory (for chat polling)
+  router.get('/find-recent', (req, res) => {
+    try {
+      const dir = req.query.dir;
+      const afterMs = parseInt(req.query.afterMs) || 0;
+      if (!dir) return res.status(400).json({ error: 'dir required' });
+
+      const dirName = dir.replace(/\//g, '-');
+      const projectDir = path.join(PROJECTS_DIR, dirName);
+      if (!fs.existsSync(projectDir)) {
+        return res.json({ found: false });
+      }
+
+      const files = fs.readdirSync(projectDir);
+      const sessionFiles = files.filter(f => f.endsWith('.jsonl') && !f.startsWith('.'));
+
+      let best = null;
+      let bestTime = 0;
+      for (const f of sessionFiles) {
+        const filePath = path.join(projectDir, f);
+        const stat = fs.statSync(filePath);
+        if (stat.mtimeMs > afterMs && stat.mtimeMs > bestTime) {
+          best = f.replace('.jsonl', '');
+          bestTime = stat.mtimeMs;
+        }
+      }
+
+      if (best) {
+        res.json({ found: true, sessionId: best, dirName });
+      } else {
+        res.json({ found: false });
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Get currently running sessions
+  router.get('/active/list', (req, res) => {
+    try {
+      const sessionsDir = path.join(CLAUDE_DIR, 'sessions');
+      if (!fs.existsSync(sessionsDir)) {
+        return res.json({ sessions: [] });
+      }
+
+      const files = fs.readdirSync(sessionsDir).filter(f => f.endsWith('.json'));
+      const sessions = [];
+
+      for (const file of files) {
+        try {
+          const data = JSON.parse(fs.readFileSync(path.join(sessionsDir, file), 'utf-8'));
+          sessions.push(data);
+        } catch (e) {}
+      }
+
+      res.json({ sessions });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Get a specific session as conversation turns
   router.get('/:sessionId/conversation', (req, res) => {
     try {
@@ -234,30 +295,6 @@ function createSessionRouter() {
       }
 
       res.json({ sessionId, messages, totalRecords: lines.length });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  // Get currently running sessions
-  router.get('/active/list', (req, res) => {
-    try {
-      const sessionsDir = path.join(CLAUDE_DIR, 'sessions');
-      if (!fs.existsSync(sessionsDir)) {
-        return res.json({ sessions: [] });
-      }
-
-      const files = fs.readdirSync(sessionsDir).filter(f => f.endsWith('.json'));
-      const sessions = [];
-
-      for (const file of files) {
-        try {
-          const data = JSON.parse(fs.readFileSync(path.join(sessionsDir, file), 'utf-8'));
-          sessions.push(data);
-        } catch (e) {}
-      }
-
-      res.json({ sessions });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
