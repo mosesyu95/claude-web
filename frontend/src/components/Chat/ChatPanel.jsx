@@ -1,5 +1,6 @@
-import { useRef, useEffect } from 'react'
-import { MessageSquare } from 'lucide-react'
+import { useRef, useEffect, useMemo } from 'react'
+import { MessageSquare, FolderOpen, Hash } from 'lucide-react'
+import { shortProject } from '../../helpers'
 import ChatBubble from './ChatBubble'
 import ChatInput from './ChatInput'
 import TypingIndicator from './TypingIndicator'
@@ -12,6 +13,10 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
       messagesRef.current.scrollTop = messagesRef.current.scrollHeight
     }
   }, [messages, status])
+
+  const messageCount = useMemo(() => {
+    return messages.filter(m => m.role === 'user').length
+  }, [messages])
 
   if (!session) {
     return (
@@ -49,18 +54,36 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
         className="flex items-center justify-between px-5 py-2.5 shrink-0"
         style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-secondary)' }}
       >
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3 min-w-0">
           <span
-            className="w-[6px] h-[6px] rounded-full"
+            className="w-[6px] h-[6px] rounded-full shrink-0"
             style={{
               background: status === 'busy' ? 'var(--status-success)' : 'var(--text-quaternary)',
             }}
           />
-          <span className="text-[13px] font-medium truncate max-w-[300px]" style={{ color: 'var(--text-primary)' }}>
+          <span className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>
             {session.title || 'Session'}
           </span>
+          {session.cwd && (
+            <span
+              className="flex items-center gap-1 text-[11px] shrink-0 px-1.5 py-0.5 rounded"
+              style={{ color: 'var(--text-tertiary)', background: 'var(--bg-spotlight)' }}
+            >
+              <FolderOpen size={10} />
+              {shortProject(session.cwd)}
+            </span>
+          )}
+          {messageCount > 0 && (
+            <span
+              className="flex items-center gap-1 text-[11px] shrink-0 px-1.5 py-0.5 rounded font-mono"
+              style={{ color: 'var(--text-quaternary)', background: 'var(--bg-spotlight)' }}
+            >
+              <Hash size={10} />
+              {messageCount}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={onDetach}
             className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200"

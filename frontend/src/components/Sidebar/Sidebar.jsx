@@ -1,15 +1,116 @@
-import { useState } from 'react'
-import { Sun, Moon, Monitor, Plus, Bot } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Sun, Moon, Monitor, Plus, Bot, PanelLeftClose, PanelLeftOpen, MessageSquare, History as HistoryIcon } from 'lucide-react'
 import ActiveSessions from './ActiveSessions'
 import History from './History'
 
+const SIDEBAR_WIDTH = 272
+const SIDEBAR_COLLAPSED = 56
+
 export default function Sidebar({ theme, effective, cycleTheme, onNewSession, activeSessions, onResumeSession, currentSessionId, onOpenConversation }) {
   const [sidebarTab, setSidebarTab] = useState('sessions')
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
+  })
+
+  useEffect(() => {
+    try { localStorage.setItem('sidebar-collapsed', collapsed) } catch {}
+  }, [collapsed])
+
+  if (collapsed) {
+    return (
+      <aside
+        className="shrink-0 flex flex-col items-center"
+        style={{
+          width: SIDEBAR_COLLAPSED,
+          background: 'var(--bg-elevated)',
+          borderRight: '1px solid var(--border-secondary)',
+        }}
+      >
+        {/* Logo */}
+        <div className="pt-4 pb-3">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'var(--primary)' }}
+          >
+            <Bot size={16} className="text-white" />
+          </div>
+        </div>
+
+        {/* Nav icons */}
+        <div className="flex flex-col items-center gap-1 mb-3">
+          <button
+            onClick={() => { setSidebarTab('sessions'); setCollapsed(false) }}
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            style={{
+              color: sidebarTab === 'sessions' ? 'var(--primary)' : 'var(--text-tertiary)',
+              background: sidebarTab === 'sessions' ? 'var(--primary-bg)' : 'transparent',
+            }}
+            onMouseEnter={e => { if (sidebarTab !== 'sessions') e.currentTarget.style.background = 'var(--bg-spotlight)' }}
+            onMouseLeave={e => { if (sidebarTab !== 'sessions') e.currentTarget.style.background = sidebarTab === 'sessions' ? 'var(--primary-bg)' : 'transparent' }}
+            title="Sessions"
+          >
+            <MessageSquare size={16} />
+          </button>
+          <button
+            onClick={() => { setSidebarTab('history'); setCollapsed(false) }}
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            style={{
+              color: sidebarTab === 'history' ? 'var(--primary)' : 'var(--text-tertiary)',
+              background: sidebarTab === 'history' ? 'var(--primary-bg)' : 'transparent',
+            }}
+            onMouseEnter={e => { if (sidebarTab !== 'history') e.currentTarget.style.background = 'var(--bg-spotlight)' }}
+            onMouseLeave={e => { if (sidebarTab !== 'history') e.currentTarget.style.background = sidebarTab === 'history' ? 'var(--primary-bg)' : 'transparent' }}
+            title="History"
+          >
+            <HistoryIcon size={16} />
+          </button>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Bottom actions */}
+        <div className="flex flex-col items-center gap-1 pb-4">
+          <button
+            onClick={cycleTheme}
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
+            title={theme === 'auto' ? 'Auto (system)' : theme === 'dark' ? 'Dark' : 'Light'}
+          >
+            {theme === 'auto' ? <Monitor size={16} /> : theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          <button
+            onClick={onNewSession}
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary-bg)'; e.currentTarget.style.color = 'var(--primary)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
+            title="New Session (Ctrl+Shift+N)"
+          >
+            <Plus size={16} />
+          </button>
+          <button
+            onClick={() => setCollapsed(false)}
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
+            title="Expand sidebar"
+          >
+            <PanelLeftOpen size={16} />
+          </button>
+        </div>
+      </aside>
+    )
+  }
 
   return (
     <aside
-      className="w-[272px] shrink-0 flex flex-col"
+      className="shrink-0 flex flex-col"
       style={{
+        width: SIDEBAR_WIDTH,
         background: 'var(--bg-elevated)',
         borderRight: '1px solid var(--border-secondary)',
       }}
@@ -50,11 +151,21 @@ export default function Sidebar({ theme, effective, cycleTheme, onNewSession, ac
             >
               <Plus size={14} />
             </button>
+            <button
+              onClick={() => setCollapsed(true)}
+              className="p-1.5 rounded-md transition-colors duration-200"
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose size={14} />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Sidebar tabs — Ant Design segmented style */}
+      {/* Sidebar tabs */}
       <div className="flex mx-3 mb-2 p-[2px] rounded-lg" style={{ background: 'var(--bg-spotlight)' }}>
         {['sessions', 'history'].map(tab => (
           <button
