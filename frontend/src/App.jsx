@@ -224,9 +224,9 @@ export default function App() {
           })}
         </div>
 
-        {/* Tab panels */}
+        {/* Tab panels — use absolute+visibility so xterm containers always have dimensions */}
         <div className="flex-1 overflow-hidden relative" style={{ background: 'var(--obsidian-0)' }}>
-          <div className={`h-full ${activeMainTab === 'chat' ? '' : 'hidden'}`}>
+          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'chat' ? 'visible' : 'hidden', zIndex: activeMainTab === 'chat' ? 1 : 0 }}>
             <ChatPanel
               session={chatSession}
               messages={chatMessages}
@@ -237,16 +237,16 @@ export default function App() {
               onStartNew={() => setShowNewSession(true)}
             />
           </div>
-          <div className={`h-full ${activeMainTab === 'raw' ? '' : 'hidden'}`}>
+          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'raw' ? 'visible' : 'hidden', zIndex: activeMainTab === 'raw' ? 1 : 0 }}>
             <RawTerminal ref={rawTermRef} theme={effective} />
           </div>
-          <div className={`h-full ${activeMainTab === 'git' ? '' : 'hidden'}`}>
+          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'git' ? 'visible' : 'hidden', zIndex: activeMainTab === 'git' ? 1 : 0 }}>
             <GitPanel cwd={chatSession?.cwd} />
           </div>
-          <div className={`h-full ${activeMainTab === 'files' ? '' : 'hidden'}`}>
+          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'files' ? 'visible' : 'hidden', zIndex: activeMainTab === 'files' ? 1 : 0 }}>
             <FilesPanel cwd={chatSession?.cwd} />
           </div>
-          <div className={`h-full ${activeMainTab === 'bash' ? '' : 'hidden'}`}>
+          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'bash' ? 'visible' : 'hidden', zIndex: activeMainTab === 'bash' ? 1 : 0 }}>
             <BashTerminal cwd={chatSession?.cwd} theme={effective} active={activeMainTab === 'bash'} />
           </div>
         </div>
