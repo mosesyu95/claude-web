@@ -90,7 +90,7 @@ export default function FilesPanel({ cwd }) {
           >
             <div className="flex items-center gap-2">
               <File size={12} style={{ color: 'var(--text-ghost)' }} />
-              <span className="text-[12px] font-mono truncate" style={{ color: 'var(--text-primary)' }}>{fileView.path}</span>
+              <span className="text-[12px] font-mono truncate" style={{ color: 'var(--text-primary)' }}>{rootDir && fileView.path.startsWith(rootDir) ? fileView.path.slice(rootDir.length + 1) : fileView.path}</span>
             </div>
             <button
               onClick={() => setFileView(null)}
