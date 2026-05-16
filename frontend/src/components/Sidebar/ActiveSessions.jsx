@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { sessions as sessionsApi } from '../../api'
 import { shortProject } from '../../helpers'
-import { Activity, Zap } from 'lucide-react'
+import { Activity, Trash2 } from 'lucide-react'
 
 export default function ActiveSessions({ activeSessions, onResumeSession, currentSessionId }) {
   const [systemSessions, setSystemSessions] = useState([])
+  const [editingId, setEditingId] = useState(null)
+  const [editValue, setEditValue] = useState('')
+  const editRef = useRef(null)
 
   const loadSystemSessions = useCallback(async () => {
     try {
@@ -18,6 +21,34 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
     const timer = setInterval(loadSystemSessions, 5000)
     return () => clearInterval(timer)
   }, [loadSystemSessions])
+
+  const startEdit = (sessionId, currentTitle) => {
+    setEditingId(sessionId)
+    setEditValue(currentTitle || '')
+    setTimeout(() => editRef.current?.select(), 10)
+  }
+
+  const commitEdit = async (sessionId, cwd) => {
+    const trimmed = editValue.trim()
+    setEditingId(null)
+    if (!trimmed) return
+    const dirName = cwd ? cwd.replace(/\//g, '-') : null
+    try {
+      await sessionsApi.rename(sessionId, trimmed, dirName)
+      setSystemSessions(prev => prev.map(s =>
+        s.sessionId === sessionId ? { ...s, title: trimmed } : s
+      ))
+    } catch {}
+  }
+
+  const handleDelete = async (sessionId, cwd) => {
+    if (!window.confirm('Delete this session? This cannot be undone.')) return
+    const dirName = cwd ? cwd.replace(/\//g, '-') : null
+    try {
+      await sessionsApi.delete(sessionId, dirName)
+      setSystemSessions(prev => prev.filter(s => s.sessionId !== sessionId))
+    } catch {}
+  }
 
   const groups = {}
   const localArr = Array.from(activeSessions.entries())
@@ -67,7 +98,7 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
                 onClick={() => {
                   if (!s.isLocal) onResumeSession(s.id, s.cwd, s.title)
                 }}
-                className="w-full text-left px-2.5 py-2 flex items-center gap-2.5 rounded-lg text-[12px] transition-all duration-200 mb-0.5"
+                className="group w-full text-left px-2.5 py-2 flex items-center gap-2.5 rounded-lg text-[12px] transition-all duration-200 mb-0.5"
                 style={{
                   color: isActive ? 'var(--amber-4)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--glow-amber)' : 'transparent',
@@ -84,7 +115,44 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
                     }}
                   />
                 </span>
-                <span className="truncate font-medium">{s.title || 'Untitled'}</span>
+                {editingId === s.id ? (
+                  <input
+                    ref={editRef}
+                    value={editValue}
+                    onChange={e => setEditValue(e.target.value)}
+                    onBlur={() => commitEdit(s.id, s.cwd)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') commitEdit(s.id, s.cwd)
+                      if (e.key === 'Escape') setEditingId(null)
+                      e.stopPropagation()
+                    }}
+                    onClick={e => e.stopPropagation()}
+                    className="flex-1 text-[12px] bg-transparent outline-none border-b min-w-0"
+                    style={{ color: 'var(--text-primary)', borderColor: 'var(--amber-5)' }}
+                  />
+                ) : (
+                  <span
+                    className="truncate font-medium flex-1 min-w-0"
+                    onDoubleClick={e => { e.stopPropagation(); startEdit(s.id, s.title) }}
+                  >
+                    {s.title || 'Untitled'}
+                  </span>
+                )}
+                {!s.isLocal && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(s.id, s.cwd)
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md transition-all duration-200 cursor-pointer"
+                    style={{ color: 'var(--status-error)' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--glow-error)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    title="Delete"
+                  >
+                    <Trash2 size={10} />
+                  </span>
+                )}
               </button>
             )
           })}

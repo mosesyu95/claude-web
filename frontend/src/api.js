@@ -7,6 +7,18 @@ export const sessions = {
   findRecent: (dir, afterMs) => fetch(`${BASE}/sessions/find-recent?dir=${encodeURIComponent(dir)}&afterMs=${afterMs}`).then(r => r.json()),
   activeList: () => fetch(`${BASE}/sessions/active/list`).then(r => r.json()),
   conversation: (id) => fetch(`${BASE}/sessions/${id}/conversation`).then(r => r.json()),
+  rename: (id, title, project) => {
+    const params = project ? `?project=${encodeURIComponent(project)}` : ''
+    return fetch(`${BASE}/sessions/${id}/title${params}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    }).then(r => r.json())
+  },
+  delete: (id, project) => {
+    const params = project ? `?project=${encodeURIComponent(project)}` : ''
+    return fetch(`${BASE}/sessions/${id}${params}`, { method: 'DELETE' }).then(r => r.json())
+  },
 }
 
 export const git = {

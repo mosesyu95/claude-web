@@ -6,8 +6,47 @@ const express = require('express');
 const CLAUDE_DIR = path.join(os.homedir(), '.claude');
 const PROJECTS_DIR = path.join(CLAUDE_DIR, 'projects');
 
+function loadTitles(dirName) {
+  try {
+    const file = path.join(PROJECTS_DIR, dirName, '.titles.json');
+    return JSON.parse(fs.readFileSync(file, 'utf-8'));
+  } catch { return {}; }
+}
+
+function saveTitle(dirName, sessionId, title) {
+  const dir = path.join(PROJECTS_DIR, dirName);
+  if (!fs.existsSync(dir)) return;
+  const file = path.join(dir, '.titles.json');
+  const titles = loadTitles(dirName);
+  titles[sessionId] = title;
+  fs.writeFileSync(file, JSON.stringify(titles, null, 2));
+}
+
+function deleteTitleEntry(dirName, sessionId) {
+  const file = path.join(PROJECTS_DIR, dirName, '.titles.json');
+  const titles = loadTitles(dirName);
+  if (titles[sessionId] !== undefined) {
+    delete titles[sessionId];
+    fs.writeFileSync(file, JSON.stringify(titles, null, 2));
+  }
+}
+
+function readAiTitle(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    for (const line of content.trim().split('\n')) {
+      try {
+        const r = JSON.parse(line);
+        if (r.type === 'ai-title' && r.aiTitle) return r.aiTitle;
+      } catch {}
+    }
+  } catch {}
+  return null;
+}
+
 function createSessionRouter() {
   const router = express.Router();
+  router.use(express.json());
 
   // List available directories (from projects that have sessions + HOME subdirs)
   router.get('/directories', (req, res) => {
@@ -75,21 +114,14 @@ function createSessionRouter() {
         const projectPath = decodeProjectDir(entry);
         const files = fs.readdirSync(fullPath);
         const sessionFiles = files.filter(f => f.endsWith('.jsonl') && !f.startsWith('.'));
+        const customTitles = loadTitles(entry);
 
         const sessions = sessionFiles.map(f => {
           const sessionId = f.replace('.jsonl', '');
           const filePath = path.join(fullPath, f);
           const fileStat = fs.statSync(filePath);
-          let title = null;
-          try {
-            const content = fs.readFileSync(filePath, 'utf-8');
-            for (const line of content.trim().split('\n')) {
-              try {
-                const r = JSON.parse(line);
-                if (r.type === 'ai-title' && r.aiTitle) { title = r.aiTitle; break; }
-              } catch (e) {}
-            }
-          } catch (e) {}
+          const aiTitle = readAiTitle(filePath);
+          const title = customTitles[sessionId] || aiTitle;
           return {
             sessionId,
             title,
@@ -129,13 +161,15 @@ function createSessionRouter() {
 
       const files = fs.readdirSync(projectDir);
       const sessionFiles = files.filter(f => f.endsWith('.jsonl') && !f.startsWith('.'));
+      const customTitles = loadTitles(req.params.dirName);
 
       const sessions = sessionFiles.map(f => {
         const sessionId = f.replace('.jsonl', '');
         const filePath = path.join(projectDir, f);
         const fileStat = fs.statSync(filePath);
 
-        let title = null;
+        const aiTitle = readAiTitle(filePath);
+        const title = customTitles[sessionId] || aiTitle;
         let firstTimestamp = null;
         let messageCount = 0;
 
@@ -147,9 +181,6 @@ function createSessionRouter() {
           for (const line of lines) {
             try {
               const record = JSON.parse(line);
-              if (record.type === 'ai-title' && record.aiTitle) {
-                title = record.aiTitle;
-              }
               if (record.timestamp && !firstTimestamp) {
                 firstTimestamp = record.timestamp;
               }
@@ -255,6 +286,42 @@ function createSessionRouter() {
       // Sort by most recently started
       sessions.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
       res.json({ sessions });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Rename a session
+  router.put('/:sessionId/title', (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { title } = req.body || {};
+      if (!title || typeof title !== 'string') {
+        return res.status(400).json({ error: 'title required' });
+      }
+
+      const sessionFile = findSessionFile(sessionId, req.query.project);
+      if (!sessionFile) return res.status(404).json({ error: 'Session not found' });
+
+      const dirName = path.basename(path.dirname(sessionFile));
+      saveTitle(dirName, sessionId, title.trim());
+      res.json({ sessionId, title: title.trim() });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // Delete a session
+  router.delete('/:sessionId', (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const sessionFile = findSessionFile(sessionId, req.query.project);
+      if (!sessionFile) return res.status(404).json({ error: 'Session not found' });
+
+      const dirName = path.basename(path.dirname(sessionFile));
+      try { fs.unlinkSync(sessionFile); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+      deleteTitleEntry(dirName, sessionId);
+      res.json({ deleted: true, sessionId });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -502,17 +569,11 @@ function getSessionTitle(sessionId, cwd) {
   const sessionFile = findSessionFile(sessionId, dirName);
   if (!sessionFile) return null;
 
-  try {
-    const content = fs.readFileSync(sessionFile, 'utf-8');
-    for (const line of content.trim().split('\n')) {
-      try {
-        const r = JSON.parse(line);
-        if (r.type === 'ai-title' && r.aiTitle) return r.aiTitle;
-      } catch (e) {}
-    }
-  } catch (e) {}
+  const dir = path.basename(path.dirname(sessionFile));
+  const custom = loadTitles(dir);
+  if (custom[sessionId]) return custom[sessionId];
 
-  return null;
+  return readAiTitle(sessionFile);
 }
 
 module.exports = { createSessionRouter };
