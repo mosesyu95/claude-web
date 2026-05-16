@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Sun, Moon, Monitor, Plus, Bot, PanelLeftClose, PanelLeftOpen, MessageSquare, History as HistoryIcon } from 'lucide-react'
 import ActiveSessions from './ActiveSessions'
 import History from './History'
@@ -6,15 +6,8 @@ import History from './History'
 const SIDEBAR_WIDTH = 272
 const SIDEBAR_COLLAPSED = 56
 
-export default function Sidebar({ theme, effective, cycleTheme, onNewSession, activeSessions, onResumeSession, currentSessionId, onOpenConversation }) {
+export default function Sidebar({ theme, effective, cycleTheme, collapsed, onToggleCollapse, onNewSession, activeSessions, onResumeSession, currentSessionId, onOpenConversation }) {
   const [sidebarTab, setSidebarTab] = useState('sessions')
-  const [collapsed, setCollapsed] = useState(() => {
-    try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
-  })
-
-  useEffect(() => {
-    try { localStorage.setItem('sidebar-collapsed', collapsed) } catch {}
-  }, [collapsed])
 
   if (collapsed) {
     return (
@@ -39,8 +32,8 @@ export default function Sidebar({ theme, effective, cycleTheme, onNewSession, ac
         {/* Nav icons */}
         <div className="flex flex-col items-center gap-1 mb-3">
           <button
-            onClick={() => { setSidebarTab('sessions'); setCollapsed(false) }}
-            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            onClick={() => { setSidebarTab('sessions'); onToggleCollapse() }}
+            className="relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
             style={{
               color: sidebarTab === 'sessions' ? 'var(--primary)' : 'var(--text-tertiary)',
               background: sidebarTab === 'sessions' ? 'var(--primary-bg)' : 'transparent',
@@ -50,9 +43,17 @@ export default function Sidebar({ theme, effective, cycleTheme, onNewSession, ac
             title="Sessions"
           >
             <MessageSquare size={16} />
+            {activeSessions.size > 0 && (
+              <span
+                className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center"
+                style={{ background: 'var(--primary)', color: 'var(--text-inverse)' }}
+              >
+                {activeSessions.size > 9 ? '9+' : activeSessions.size}
+              </span>
+            )}
           </button>
           <button
-            onClick={() => { setSidebarTab('history'); setCollapsed(false) }}
+            onClick={() => { setSidebarTab('history'); onToggleCollapse() }}
             className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
             style={{
               color: sidebarTab === 'history' ? 'var(--primary)' : 'var(--text-tertiary)',
@@ -92,12 +93,12 @@ export default function Sidebar({ theme, effective, cycleTheme, onNewSession, ac
             <Plus size={16} />
           </button>
           <button
-            onClick={() => setCollapsed(false)}
+            onClick={onToggleCollapse}
             className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
             style={{ color: 'var(--text-tertiary)' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
-            title="Expand sidebar"
+            title="Expand sidebar (Ctrl+B)"
           >
             <PanelLeftOpen size={16} />
           </button>
@@ -152,12 +153,12 @@ export default function Sidebar({ theme, effective, cycleTheme, onNewSession, ac
               <Plus size={14} />
             </button>
             <button
-              onClick={() => setCollapsed(true)}
+              onClick={onToggleCollapse}
               className="p-1.5 rounded-md transition-colors duration-200"
               style={{ color: 'var(--text-tertiary)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
-              title="Collapse sidebar"
+              title="Collapse sidebar (Ctrl+B)"
             >
               <PanelLeftClose size={14} />
             </button>

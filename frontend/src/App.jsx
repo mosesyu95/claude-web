@@ -27,6 +27,9 @@ export default function App() {
   const [activeMainTab, setActiveMainTab] = useState('chat')
   const [showNewSession, setShowNewSession] = useState(false)
   const [activeSessions, setActiveSessions] = useState(new Map())
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
+  })
 
   const [chatSession, setChatSession] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -168,6 +171,14 @@ export default function App() {
         e.preventDefault()
         setShowNewSession(true)
       }
+      if (e.ctrlKey && e.key === 'b') {
+        e.preventDefault()
+        setSidebarCollapsed(prev => {
+          const next = !prev
+          try { localStorage.setItem('sidebar-collapsed', next) } catch {}
+          return next
+        })
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -183,6 +194,14 @@ export default function App() {
         theme={theme}
         effective={effective}
         cycleTheme={cycleTheme}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => {
+          setSidebarCollapsed(prev => {
+            const next = !prev
+            try { localStorage.setItem('sidebar-collapsed', next) } catch {}
+            return next
+          })
+        }}
         onNewSession={() => setShowNewSession(true)}
         activeSessions={activeSessions}
         onResumeSession={resumeSession}
