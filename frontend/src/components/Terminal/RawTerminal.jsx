@@ -68,7 +68,6 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
       lineHeight: 1.5,
       cursorBlink: true,
       convertEol: true,
-      letterSpacing: 0.3,
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -140,11 +139,13 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     },
   }))
 
+  const bg = theme === 'dark' ? obsidianTheme.background : lightTheme.background
+
   return (
     <div
       ref={containerRef}
       className="h-full w-full"
-      style={{ background: 'var(--obsidian-0)' }}
+      style={{ background: bg }}
     />
   )
 })
