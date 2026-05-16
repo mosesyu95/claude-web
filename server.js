@@ -16,7 +16,7 @@ const wss = new WebSocketServer({ server });
 const PORT = process.env.PORT || 3000;
 const SESSION_TIMEOUT_MS = parseInt(process.env.SESSION_TIMEOUT_MS) || 1800000;
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 app.use('/api/sessions', createSessionRouter());
 app.use('/api/files', createFileApiRouter());
 app.use('/api/git', createGitApiRouter());

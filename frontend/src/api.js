@@ -23,8 +23,17 @@ export const git = {
 }
 
 export const files = {
-  list: (dir) => fetch(`${BASE}/files/list?dir=${encodeURIComponent(dir)}`).then(r => r.json()),
-  read: (path) => fetch(`${BASE}/files/read?path=${encodeURIComponent(path)}`).then(r => r.json()),
+  list: (dir, root) => {
+    const params = new URLSearchParams()
+    if (dir) params.set('dir', dir)
+    if (root) params.set('root', root)
+    return fetch(`${BASE}/files/list?${params}`).then(r => r.json())
+  },
+  read: (path, root) => {
+    const params = new URLSearchParams({ path })
+    if (root) params.set('root', root)
+    return fetch(`${BASE}/files/read?${params}`).then(r => r.json())
+  },
 }
 
 export function createWebSocket(params) {

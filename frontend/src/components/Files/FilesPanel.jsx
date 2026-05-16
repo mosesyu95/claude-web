@@ -4,52 +4,61 @@ import { fileIcon, formatSize, timeAgo } from '../../helpers'
 import { FolderOpen, ChevronRight, ArrowLeft, X, File } from 'lucide-react'
 
 export default function FilesPanel({ cwd }) {
+  const [rootDir, setRootDir] = useState(null)
   const [dir, setDir] = useState(null)
   const [listing, setListing] = useState(null)
   const [fileView, setFileView] = useState(null)
   const [loading, setLoading] = useState(false)
-  const currentDir = dir || cwd || window._homeDir || '.'
+  const currentDir = dir || rootDir || '.'
 
-  const loadDir = useCallback(async (d) => {
+  const loadDir = useCallback(async (d, root) => {
+    const r = root || rootDir
+    if (!r) return
     setLoading(true)
     try {
-      const data = await filesApi.list(d)
+      const data = await filesApi.list(d, r)
       setListing(data)
       setDir(d)
     } catch {}
     setLoading(false)
-  }, [])
+  }, [rootDir])
 
   useEffect(() => {
     const d = cwd || window._homeDir
-    if (d && !dir) loadDir(d)
-  }, [cwd, loadDir])
+    if (d && !rootDir) {
+      setRootDir(d)
+      loadDir(d, d)
+    }
+  }, [cwd, rootDir, loadDir])
 
   const openFile = async (path) => {
+    if (!rootDir) return
     try {
-      const data = await filesApi.read(path)
+      const data = await filesApi.read(path, rootDir)
       setFileView(data)
     } catch {}
   }
 
   const Breadcrumbs = () => {
-    const parts = currentDir.split('/').filter(Boolean)
+    const rootParts = rootDir ? rootDir.split('/').filter(Boolean) : []
+    const curParts = currentDir.split('/').filter(Boolean)
+    const relParts = curParts.slice(rootParts.length)
     return (
       <div
         className="flex items-center gap-1 px-4 py-2.5 overflow-x-auto shrink-0"
         style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}
       >
         <button
-          onClick={() => loadDir('/')}
-          className="text-[12px] font-mono px-1.5 py-0.5 rounded transition-colors"
+          onClick={() => rootDir && loadDir(rootDir)}
+          className="text-[12px] font-mono px-1.5 py-0.5 rounded transition-colors truncate max-w-[140px]"
           style={{ color: 'var(--text-tertiary)' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--amber-5)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
         >
-          /
+          {rootParts[rootParts.length - 1] || '/'}
         </button>
-        {parts.map((part, i) => {
-          const path = '/' + parts.slice(0, i + 1).join('/')
+        {relParts.map((part, i) => {
+          const path = '/' + [...rootParts, ...relParts.slice(0, i + 1)].join('/')
           return (
             <span key={i} className="flex items-center gap-1">
               <ChevronRight size={10} style={{ color: 'var(--obsidian-6)' }} />
@@ -123,8 +132,8 @@ export default function FilesPanel({ cwd }) {
           )}
           {listing?.items?.map(item => (
             <button
-              key={item.fullPath}
-              onClick={() => item.type === 'dir' ? loadDir(item.fullPath) : openFile(item.fullPath)}
+              key={item.path}
+              onClick={() => item.type === 'dir' ? loadDir(item.path) : openFile(item.path)}
               className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-all duration-200 text-left"
               style={{ color: 'var(--text-secondary)' }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--obsidian-2)'}
