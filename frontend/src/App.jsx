@@ -179,6 +179,15 @@ export default function App() {
           return next
         })
       }
+      // Ctrl+1-5 for tab switching
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key >= '1' && e.key <= '5') {
+        const tabKeys = ['chat', 'raw', 'git', 'files', 'bash']
+        const idx = parseInt(e.key) - 1
+        if (tabKeys[idx]) {
+          e.preventDefault()
+          setActiveMainTab(tabKeys[idx])
+        }
+      }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
