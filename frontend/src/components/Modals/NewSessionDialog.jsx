@@ -1,25 +1,83 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { sessions as sessionsApi } from '../../api'
-import { X, FolderOpen, Plus } from 'lucide-react'
+import { X, FolderOpen, Plus, ChevronRight, ArrowLeft, Search, FolderPlus } from 'lucide-react'
 
 export default function NewSessionDialog({ onStart, onClose }) {
-  const [directories, setDirectories] = useState([])
-  const [selected, setSelected] = useState('')
+  const [roots, setRoots] = useState([])
+  const [currentPath, setCurrentPath] = useState('')
+  const [entries, setEntries] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState('')
+  const [newFolder, setNewFolder] = useState('')
+  const [showNewFolder, setShowNewFolder] = useState(false)
+  const searchRef = useRef(null)
+  const newFolderRef = useRef(null)
 
   useEffect(() => {
     sessionsApi.directories().then(data => {
       const dirs = data?.directories || []
-      setDirectories(dirs)
-      const home = window._homeDir || dirs[0]
-      setSelected(home || '')
+      setRoots(dirs)
+      if (dirs.length === 1) {
+        navigateTo(dirs[0])
+      }
     })
   }, [])
+
+  const navigateTo = useCallback(async (dir) => {
+    setCurrentPath(dir)
+    setSearch('')
+    setShowNewFolder(false)
+    setNewFolder('')
+    setLoading(true)
+    try {
+      const data = await sessionsApi.ls(dir)
+      setEntries(data?.entries || [])
+    } catch { setEntries([]) }
+    setLoading(false)
+  }, [])
+
+  const goUp = useCallback(() => {
+    if (!currentPath) return
+    const parent = currentPath.replace(/\/[^/]+\/?$/, '') || '/'
+    navigateTo(parent)
+  }, [currentPath, navigateTo])
+
+  const handleCreateFolder = useCallback(async () => {
+    const name = newFolder.trim()
+    if (!name || !currentPath) return
+    const fullPath = currentPath.replace(/\/$/, '') + '/' + name
+    try {
+      const result = await sessionsApi.mkdir(fullPath)
+      if (result?.created) {
+        setNewFolder('')
+        setShowNewFolder(false)
+        navigateTo(currentPath)
+      }
+    } catch {}
+  }, [newFolder, currentPath, navigateTo])
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  useEffect(() => {
+    if (showNewFolder && newFolderRef.current) newFolderRef.current.focus()
+  }, [showNewFolder])
+
+  const filtered = search
+    ? entries.filter(e => e.toLowerCase().includes(search.toLowerCase()))
+    : entries
+
+  const displayPath = (p) => {
+    if (!p) return ''
+    for (const root of roots) {
+      if (p === root) return '~'
+      if (p.startsWith(root + '/')) return '~/' + p.slice(root.length + 1)
+    }
+    return p
+  }
 
   return (
     <div
@@ -28,17 +86,18 @@ export default function NewSessionDialog({ onStart, onClose }) {
       onClick={onClose}
     >
       <div
-        className="w-[420px] rounded-lg overflow-hidden"
+        className="w-[480px] rounded-lg overflow-hidden flex flex-col"
         style={{
           background: 'var(--bg-elevated)',
           border: '1px solid var(--border)',
           boxShadow: 'var(--shadow-lg)',
           animation: 'fadeIn 0.2s ease',
+          maxHeight: '70vh',
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 pt-5 pb-4">
+        <div className="px-5 pt-5 pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div
@@ -64,58 +123,184 @@ export default function NewSessionDialog({ onStart, onClose }) {
           </div>
         </div>
 
-        {/* Directory selector */}
-        <div className="px-5 pb-4">
-          <label className="block text-[11px] font-medium mb-2" style={{ color: 'var(--text-tertiary)' }}>
-            Working Directory
-          </label>
-          <div className="relative">
-            <FolderOpen size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-quaternary)' }} />
-            <select
-              value={selected}
-              onChange={e => setSelected(e.target.value)}
-              className="w-full rounded-lg py-2.5 pl-9 pr-3 text-[13px] focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
-              style={{
-                background: 'var(--bg-base)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border)',
-                fontFamily: 'var(--font-mono)',
-              }}
-              onFocus={e => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 2px var(--primary-bg)' }}
-              onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
-            >
-              {directories.map(d => (
-                <option key={d} value={d}>{d}</option>
+        {/* Root selector or breadcrumb */}
+        {!currentPath ? (
+          <div className="px-5 pb-3">
+            <label className="block text-[11px] font-medium mb-2" style={{ color: 'var(--text-tertiary)' }}>
+              Root Directory
+            </label>
+            <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
+              {roots.map(dir => (
+                <button
+                  key={dir}
+                  onClick={() => navigateTo(dir)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-left transition-colors"
+                  style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <FolderOpen size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                  <span className="truncate">{displayPath(dir)}</span>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Breadcrumb + back */}
+            <div className="px-5 pb-2">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={goUp}
+                  className="p-1 rounded transition-colors"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
+                >
+                  <ArrowLeft size={14} />
+                </button>
+                <div
+                  className="flex-1 text-[12px] truncate px-2 py-1 rounded"
+                  style={{ color: 'var(--text-secondary)', background: 'var(--bg-base)', fontFamily: 'var(--font-mono)' }}
+                  title={currentPath}
+                >
+                  {displayPath(currentPath)}
+                </div>
+                <button
+                  onClick={() => { setShowNewFolder(!showNewFolder); setNewFolder('') }}
+                  className="p-1 rounded transition-colors"
+                  style={{ color: showNewFolder ? 'var(--primary)' : 'var(--text-tertiary)' }}
+                  title="New folder"
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--primary)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = showNewFolder ? 'var(--primary)' : 'var(--text-tertiary)' }}
+                >
+                  <FolderPlus size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* New folder input */}
+            {showNewFolder && (
+              <div className="px-5 pb-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={newFolderRef}
+                    type="text"
+                    value={newFolder}
+                    onChange={e => setNewFolder(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleCreateFolder() }}
+                    placeholder="Folder name"
+                    className="flex-1 rounded-md px-3 py-1.5 text-[12px] focus:outline-none"
+                    style={{
+                      background: 'var(--bg-base)',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--border)',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 2px var(--primary-bg)' }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+                  />
+                  <button
+                    onClick={handleCreateFolder}
+                    disabled={!newFolder.trim()}
+                    className="px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors"
+                    style={{
+                      background: newFolder.trim() ? 'var(--primary)' : 'var(--bg-spotlight)',
+                      color: newFolder.trim() ? 'var(--text-inverse)' : 'var(--text-quaternary)',
+                      border: 'none',
+                    }}
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Search */}
+            <div className="px-5 pb-2">
+              <div className="relative">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-quaternary)' }} />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Filter directories..."
+                  className="w-full rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none"
+                  style={{
+                    background: 'var(--bg-base)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border)',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 2px var(--primary-bg)' }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
+                />
+              </div>
+            </div>
+
+            {/* Directory list */}
+            <div className="px-5 pb-3 flex-1 overflow-y-auto" style={{ maxHeight: '240px' }}>
+              {loading ? (
+                <div className="text-[12px] py-4 text-center" style={{ color: 'var(--text-tertiary)' }}>Loading...</div>
+              ) : filtered.length === 0 ? (
+                <div className="text-[12px] py-4 text-center" style={{ color: 'var(--text-tertiary)' }}>
+                  {search ? 'No matching directories' : 'Empty directory'}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-0.5">
+                  {filtered.map(name => {
+                    const fullPath = currentPath.replace(/\/$/, '') + '/' + name
+                    return (
+                      <button
+                        key={name}
+                        onClick={() => navigateTo(fullPath)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-left transition-colors"
+                        style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <FolderOpen size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                        <span className="truncate flex-1">{name}</span>
+                        <ChevronRight size={12} style={{ color: 'var(--text-quaternary)', flexShrink: 0 }} />
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 px-5 py-4" style={{ background: 'var(--bg-container)', borderTop: '1px solid var(--border-secondary)' }}>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200"
-            style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => selected && onStart(selected)}
-            disabled={!selected}
-            className="px-5 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200"
-            style={{
-              background: selected ? 'var(--primary)' : 'var(--bg-spotlight)',
-              color: selected ? 'var(--text-inverse)' : 'var(--text-quaternary)',
-              border: 'none',
-            }}
-            onMouseEnter={e => { if (selected) e.currentTarget.style.background = 'var(--primary-hover)' }}
-            onMouseLeave={e => { if (selected) e.currentTarget.style.background = 'var(--primary)' }}
-          >
-            Start Session
-          </button>
+        <div className="flex justify-between items-center gap-2 px-5 py-4" style={{ background: 'var(--bg-container)', borderTop: '1px solid var(--border-secondary)' }}>
+          <div className="text-[11px]" style={{ color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+            {currentPath ? displayPath(currentPath) : 'Select a root'}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200"
+              style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => currentPath && onStart(currentPath)}
+              disabled={!currentPath}
+              className="px-5 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200"
+              style={{
+                background: currentPath ? 'var(--primary)' : 'var(--bg-spotlight)',
+                color: currentPath ? 'var(--text-inverse)' : 'var(--text-quaternary)',
+                border: 'none',
+              }}
+              onMouseEnter={e => { if (currentPath) e.currentTarget.style.background = 'var(--primary-hover)' }}
+              onMouseLeave={e => { if (currentPath) e.currentTarget.style.background = 'var(--primary)' }}
+            >
+              Start Session
+            </button>
+          </div>
         </div>
       </div>
     </div>

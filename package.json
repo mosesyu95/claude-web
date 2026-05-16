@@ -3,9 +3,21 @@
   "version": "1.0.0",
   "description": "Web wrapper for Claude CLI - maps TUI to browser with session history",
   "main": "server.js",
+  "bin": {
+    "claude-web": "./server.js"
+  },
+  "files": [
+    "server.js",
+    "src/",
+    "frontend/dist/",
+    ".env.example",
+    "README.md"
+  ],
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "build": "cd frontend && npm install && npm run build",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@homebridge/node-pty-prebuilt-multiarch": "^0.13.1",

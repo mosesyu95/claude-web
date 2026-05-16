@@ -138,6 +138,7 @@ body {
 }
 .main-tab.active { color: var(--text); border-bottom-color: var(--accent); }
 .main-tab:hover { color: var(--text); }
+.main-tab.disabled { color: var(--text-dim); opacity: 0.35; cursor: default; pointer-events: none; }
 
 .main-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
 .main-panel.active { display: flex; }

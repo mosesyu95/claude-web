@@ -16,7 +16,7 @@ Claude Web is a Node.js web application that wraps Claude CLI and provides a bro
 - `server.js` — Entry point. Express + WebSocket server, session timeout checker
 - `src/pty-manager.js` — Spawns Claude CLI via PTY, tracks `lastInputTime` for timeout
 - `src/bash-manager.js` — Spawns system shell via PTY (zsh/bash)
-- `src/session-api.js` — REST routes: projects, active sessions, conversation parsing, title editing/deletion, session deletion
+- `src/session-api.js` — REST routes: projects, active sessions, conversation parsing, title editing/deletion, session deletion, directory listing/browsing
 - `src/git-api.js` — REST routes: status, log, diff with structured parser
 - `src/file-api.js` — REST routes: directory listing, file reading
 
@@ -38,7 +38,7 @@ Claude Web is a Node.js web application that wraps Claude CLI and provides a bro
 - `components/Git/GitPanel.jsx` — Git status, branches, commits, file diffs
 - `components/Git/DiffViewer.jsx` — Unified diff display with add/delete highlighting
 - `components/Files/FilesPanel.jsx` — File browser with breadcrumbs, directory listing, file viewer
-- `components/Modals/NewSessionDialog.jsx` — Directory selector for new sessions
+- `components/Modals/NewSessionDialog.jsx` — Directory browser for new sessions: root selector, subdirectory drill-down, search filter, new folder creation
 - `components/Modals/ReplayOverlay.jsx` — Full-screen conversation replay
 - `components/Terminal/RawTerminal.jsx` — xterm.js for Claude PTY (forwardRef with connectWs)
 - `components/Terminal/BashTerminal.jsx` — xterm.js for system shell via WebSocket
@@ -53,6 +53,17 @@ Claude Web is a Node.js web application that wraps Claude CLI and provides a bro
 - **xterm.js**: Two instances via React forwardRef — RawTerminal (Claude PTY), BashTerminal (shell PTY). Visibility-based tab switching (not display:none) to maintain container dimensions
 - **Route ordering matters** in session-api.js: static routes (`/directories`, `/projects`, `/active/list`, `/find-recent`) must come BEFORE `/:sessionId`
 - **Session deduplication**: Backend `GET /active/list` deduplicates by sessionId (subprocess merging)
+- **PTY reattach**: When resuming an already-active session, the server reuses the existing PTY process instead of spawning a duplicate. Old WebSocket is closed, new one replays history
+- **Directory scoping**: `ALLOWED_DIRS` env var (comma-separated paths) restricts which directories are available for new sessions. Defaults to home directory. Session creation validates cwd against allowed list
+- **Tab state**: Raw, Git, Files tabs are disabled when no session is active. Only Chat and Bash are always available
+
+## Environment Variables
+
+Set in `.env` file (see `.env.example`):
+
+- `PORT` — Server port (default: 3000)
+- `SESSION_TIMEOUT_MS` — Auto-close idle sessions after N ms (default: 1800000 = 30 min)
+- `ALLOWED_DIRS` — Comma-separated list of allowed root directories for new sessions (default: home directory). When set, the directory browser only shows these roots and their subdirectories. Session creation is rejected if cwd is outside allowed paths
 
 ## Keyboard Shortcuts
 

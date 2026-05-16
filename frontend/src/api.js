@@ -2,6 +2,12 @@ const BASE = '/api'
 
 export const sessions = {
   directories: () => fetch(`${BASE}/sessions/directories`).then(r => r.json()),
+  ls: (dir) => fetch(`${BASE}/sessions/directories/ls?path=${encodeURIComponent(dir)}`).then(r => r.json()),
+  mkdir: (dir) => fetch(`${BASE}/sessions/directories/mkdir`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dir }),
+  }).then(r => r.json()),
   projects: () => fetch(`${BASE}/sessions/projects`).then(r => r.json()),
   projectSessions: (dirName) => fetch(`${BASE}/sessions/projects/${dirName}`).then(r => r.json()),
   findRecent: (dir, afterMs) => fetch(`${BASE}/sessions/find-recent?dir=${encodeURIComponent(dir)}&afterMs=${afterMs}`).then(r => r.json()),

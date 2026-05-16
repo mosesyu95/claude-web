@@ -330,6 +330,9 @@
         i.addEventListener('click', () => {
           if (s.source === 'local') {
             workingDir = s.cwd; switchMainTab('chat');
+          } else if (s.sessionId === currentSessionId && currentWs && currentWs.readyState === WebSocket.OPEN) {
+            // Already connected to this session — just switch to it
+            workingDir = s.cwd || workingDir; switchMainTab('chat');
           } else {
             // System-detected session: resume directly
             resumeSession(s.sessionId, s.cwd || '', s.title);

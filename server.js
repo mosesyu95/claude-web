@@ -1,11 +1,12 @@
+#!/usr/bin/env node
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');
 const path = require('path');
-const { createPtySession } = require('./src/pty-manager');
+const { createPtySession, reattachSession } = require('./src/pty-manager');
 const { createBashSession } = require('./src/bash-manager');
-const { createSessionRouter } = require('./src/session-api');
+const { createSessionRouter, isDirAllowed } = require('./src/session-api');
 const { createFileApiRouter } = require('./src/file-api');
 const { createGitApiRouter } = require('./src/git-api');
 
@@ -29,6 +30,11 @@ wss.on('connection', (ws, req) => {
 
   if (action === 'new') {
     const cwd = url.searchParams.get('cwd') || process.env.HOME;
+    if (!isDirAllowed(cwd)) {
+      ws.send(JSON.stringify({ type: 'error', message: 'Directory not allowed' }));
+      ws.close();
+      return;
+    }
     const sessionId = createPtySession(ws, cwd, activeSessions);
     ws.send(JSON.stringify({ type: 'session-started', sessionId }));
 
@@ -40,6 +46,13 @@ wss.on('connection', (ws, req) => {
       ws.close();
       return;
     }
+
+    // Reuse existing PTY if this sessionId is already active (avoids spawning duplicate processes)
+    if (reattachSession(ws, resumeId, activeSessions)) {
+      ws.send(JSON.stringify({ type: 'session-started', sessionId: resumeId, resumedFrom: resumeId }));
+      return;
+    }
+
     const sessionId = createPtySession(ws, cwd, activeSessions, { resumeSessionId: resumeId });
     ws.send(JSON.stringify({ type: 'session-started', sessionId, resumedFrom: resumeId }));
 

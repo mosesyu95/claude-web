@@ -46,12 +46,27 @@ function createPtySession(ws, cwd, activeSessions, options = {}) {
     resumedFrom: options.resumeSessionId || null,
     lastInputTime: Date.now(),
     pid: ptyProcess.pid,
+    onDataDisposable: null,
+    wsMsgHandler: null,
+    wsCloseHandler: null,
   };
 
   activeSessions.set(sessionId, session);
+  wireSession(session, ws, sessionId, activeSessions);
+
+  return sessionId;
+}
+
+function wireSession(session, ws, sessionId, activeSessions) {
+  const ptyProcess = session.pty;
+
+  // Dispose old onData listener if any
+  if (session.onDataDisposable) {
+    try { session.onDataDisposable.dispose(); } catch (e) {}
+  }
 
   // PTY output -> WebSocket
-  ptyProcess.onData((data) => {
+  session.onDataDisposable = ptyProcess.onData((data) => {
     const msg = JSON.stringify({ type: 'pty-data', data });
     session.history.push(msg);
     if (session.history.length > 5000) {
@@ -62,8 +77,12 @@ function createPtySession(ws, cwd, activeSessions, options = {}) {
     }
   });
 
+  // Remove old WebSocket handlers if any
+  if (session.wsMsgHandler) ws.removeListener('message', session.wsMsgHandler);
+  if (session.wsCloseHandler) ws.removeListener('close', session.wsCloseHandler);
+
   // WebSocket input -> PTY
-  ws.on('message', (raw) => {
+  session.wsMsgHandler = (raw) => {
     try {
       const msg = JSON.parse(raw.toString());
       if (msg.type === 'pty-input') {
@@ -73,20 +92,49 @@ function createPtySession(ws, cwd, activeSessions, options = {}) {
         ptyProcess.resize(msg.cols || 120, msg.rows || 36);
       }
     } catch (e) {}
-  });
+  };
+  ws.on('message', session.wsMsgHandler);
 
-  ws.on('close', () => {
-    session.ws = null;
-  });
+  session.wsCloseHandler = () => { session.ws = null; };
+  ws.on('close', session.wsCloseHandler);
 
+  // Re-register onExit (idempotent — old handler is harmless since ws reference is updated)
   ptyProcess.onExit(({ exitCode }) => {
     if (ws && ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: 'pty-exit', exitCode }));
     }
     activeSessions.delete(sessionId);
   });
+}
 
-  return sessionId;
+/**
+ * Reattach a new WebSocket to an existing PTY session.
+ * Returns true if successful, false if the PTY is dead.
+ */
+function reattachSession(ws, sessionId, activeSessions) {
+  const session = activeSessions.get(sessionId);
+  if (!session || !session.pty) return false;
+
+  try { process.kill(session.pty.pid, 0); } catch { return false; }
+
+  // Close old WebSocket
+  if (session.ws && session.ws !== ws && session.ws.readyState === 1) {
+    try { session.ws.close(); } catch (e) {}
+  }
+
+  session.ws = ws;
+  session.lastInputTime = Date.now();
+
+  // Wire new WebSocket to existing PTY
+  wireSession(session, ws, sessionId, activeSessions);
+
+  // Replay history to new client
+  for (const chunk of session.history) {
+    if (ws.readyState === 1) ws.send(chunk);
+  }
+
+  console.log(`[pty] reattached session ${sessionId} (pid ${session.pty.pid})`);
+  return true;
 }
 
 function findClaudeBin() {
@@ -121,4 +169,4 @@ function findClaudeBin() {
   return 'claude';
 }
 
-module.exports = { createPtySession };
+module.exports = { createPtySession, reattachSession };

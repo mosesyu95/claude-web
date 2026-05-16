@@ -150,6 +150,7 @@ export default function App() {
     chatRenderedRef.current = 0
     if (chatPollRef.current) clearInterval(chatPollRef.current)
     rawTermRef.current?.disconnect()
+    setActiveMainTab(prev => (prev === 'raw' || prev === 'git' || prev === 'files') ? 'chat' : prev)
   }, [wsHook])
 
   const killSession = useCallback(() => {
@@ -229,18 +230,22 @@ export default function App() {
           {MAIN_TABS.map(tab => {
             const Icon = tab.icon
             const active = activeMainTab === tab.key
+            const needsSession = tab.key === 'raw' || tab.key === 'git' || tab.key === 'files'
+            const disabled = needsSession && !chatSession
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveMainTab(tab.key)}
+                onClick={() => { if (!disabled) setActiveMainTab(tab.key) }}
                 className="relative flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors duration-200"
                 style={{
-                  color: active ? 'var(--primary)' : 'var(--text-tertiary)',
+                  color: disabled ? 'var(--text-quaternary)' : active ? 'var(--primary)' : 'var(--text-tertiary)',
+                  opacity: disabled ? 0.4 : 1,
+                  cursor: disabled ? 'default' : 'pointer',
                 }}
               >
                 <Icon size={14} strokeWidth={active ? 2 : 1.5} />
                 {tab.label}
-                {active && (
+                {active && !disabled && (
                   <span
                     className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
                     style={{ background: 'var(--primary)' }}
