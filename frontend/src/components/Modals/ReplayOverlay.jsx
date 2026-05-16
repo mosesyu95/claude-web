@@ -7,37 +7,38 @@ export default function ReplayOverlay({ replay, onResume, onClose }) {
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: 'rgba(8,8,10,0.95)', backdropFilter: 'blur(12px)', animation: 'fadeIn 0.2s ease' }}
+      style={{ background: 'var(--bg-mask)', backdropFilter: 'blur(8px)', animation: 'fadeIn 0.2s ease' }}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-3 shrink-0"
-        style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}
+        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-secondary)' }}
       >
         <div className="flex items-center gap-2.5">
-          <History size={14} style={{ color: 'var(--amber-5)' }} />
-          <span className="text-[13px] font-semibold truncate max-w-[400px]" style={{ color: 'var(--text-primary)' }}>
+          <History size={14} style={{ color: 'var(--primary)' }} />
+          <span className="text-[13px] font-medium truncate max-w-[400px]" style={{ color: 'var(--text-primary)' }}>
             {replay.title || 'Replay'}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <button
             onClick={onResume}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold rounded-xl transition-all duration-300"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-medium rounded-lg transition-colors duration-200"
             style={{
-              background: 'linear-gradient(135deg, var(--amber-7), var(--amber-5))',
-              color: 'white',
-              boxShadow: '0 2px 12px var(--glow-amber-strong)',
+              background: 'var(--primary)',
+              color: 'var(--text-inverse)',
             }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-hover)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--primary)'}
           >
             <Play size={12} />
             Resume
           </button>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg transition-colors"
+            className="p-1.5 rounded-md transition-colors"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             <X size={16} />
@@ -54,9 +55,9 @@ export default function ReplayOverlay({ replay, onResume, onClose }) {
             </div>
           ))}
           {(!replay.turns || replay.turns.length === 0) && (
-            <div className="flex flex-col items-center justify-center h-40" style={{ color: 'var(--text-ghost)' }}>
+            <div className="flex flex-col items-center justify-center h-40" style={{ color: 'var(--text-quaternary)' }}>
               <History size={24} className="mb-2 opacity-30" />
-              <span className="text-[13px] font-medium">No conversation data</span>
+              <span className="text-[13px]">No conversation data</span>
             </div>
           )}
         </div>

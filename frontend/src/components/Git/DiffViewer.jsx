@@ -3,7 +3,7 @@ import { FileCode } from 'lucide-react'
 export default function DiffViewer({ files }) {
   if (!files?.length) {
     return (
-      <div className="flex items-center justify-center h-32 text-[13px]" style={{ color: 'var(--text-ghost)' }}>
+      <div className="flex items-center justify-center h-32 text-[13px]" style={{ color: 'var(--text-quaternary)' }}>
         No changes
       </div>
     )
@@ -14,14 +14,14 @@ export default function DiffViewer({ files }) {
       {files.map((file, fi) => (
         <div
           key={fi}
-          className="rounded-xl overflow-hidden"
-          style={{ background: 'var(--obsidian-2)', border: '1px solid var(--obsidian-4)' }}
+          className="rounded-lg overflow-hidden"
+          style={{ background: 'var(--bg-spotlight)', border: '1px solid var(--border-secondary)' }}
         >
           <div
             className="flex items-center gap-2 px-3.5 py-2"
-            style={{ background: 'var(--obsidian-3)', borderBottom: '1px solid var(--obsidian-4)' }}
+            style={{ background: 'var(--bg-container)', borderBottom: '1px solid var(--border-secondary)' }}
           >
-            <FileCode size={12} style={{ color: 'var(--text-ghost)' }} />
+            <FileCode size={12} style={{ color: 'var(--text-quaternary)' }} />
             <span className="text-[12px] font-mono truncate" style={{ color: 'var(--text-primary)' }}>{file.path}</span>
             <span className="ml-auto flex items-center gap-2 text-[11px] font-mono">
               <span style={{ color: 'var(--status-success)' }}>+{file.additions}</span>
@@ -32,7 +32,7 @@ export default function DiffViewer({ files }) {
             <div key={hi}>
               <div
                 className="px-3.5 py-1.5 text-[10px] font-mono"
-                style={{ color: 'var(--text-ghost)', background: 'var(--obsidian-3)', borderBottom: '1px solid var(--obsidian-4)' }}
+                style={{ color: 'var(--text-quaternary)', background: 'var(--bg-container)', borderBottom: '1px solid var(--border-secondary)' }}
               >
                 {hunk.header}
               </div>
@@ -43,13 +43,13 @@ export default function DiffViewer({ files }) {
                   <div key={li} className={`flex ${isAdd ? 'diff-line-add' : isDel ? 'diff-line-del' : ''}`}>
                     <span
                       className="diff-line-num w-10 text-right pr-2 text-[10px] font-mono select-none shrink-0"
-                      style={{ color: 'var(--text-ghost)', background: 'var(--obsidian-3)' }}
+                      style={{ color: 'var(--text-quaternary)', background: 'var(--bg-container)' }}
                     >
                       {line.oldNum || ''}
                     </span>
                     <span
                       className="diff-line-num w-10 text-right pr-2 text-[10px] font-mono select-none shrink-0"
-                      style={{ color: 'var(--text-ghost)', background: 'var(--obsidian-3)' }}
+                      style={{ color: 'var(--text-quaternary)', background: 'var(--bg-container)' }}
                     >
                       {line.newNum || ''}
                     </span>

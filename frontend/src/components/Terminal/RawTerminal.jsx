@@ -3,53 +3,53 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 
-const obsidianTheme = {
-  background: '#08080a',
-  foreground: '#e8e8ec',
-  cursor: '#f59e0b',
-  cursorAccent: '#08080a',
-  selectionBackground: 'rgba(245, 158, 11, 0.2)',
-  selectionForeground: '#e8e8ec',
-  black: '#18181b',
-  red: '#f87171',
-  green: '#34d399',
-  yellow: '#fbbf24',
-  blue: '#60a5fa',
-  magenta: '#c084fc',
-  cyan: '#67e8f9',
-  white: '#e8e8ec',
-  brightBlack: '#52525b',
-  brightRed: '#fca5a5',
-  brightGreen: '#6ee7b7',
-  brightYellow: '#fde68a',
-  brightBlue: '#93c5fd',
-  brightMagenta: '#d8b4fe',
-  brightCyan: '#a5f3fc',
-  brightWhite: '#fafafa',
+const darkTheme = {
+  background: '#141414',
+  foreground: 'rgba(255,255,255,0.88)',
+  cursor: '#1677ff',
+  cursorAccent: '#141414',
+  selectionBackground: 'rgba(22,119,255,0.2)',
+  selectionForeground: '#ffffff',
+  black: '#141414',
+  red: '#ff4d4f',
+  green: '#52c41a',
+  yellow: '#faad14',
+  blue: '#1677ff',
+  magenta: '#9254de',
+  cyan: '#13c2c2',
+  white: 'rgba(255,255,255,0.88)',
+  brightBlack: '#424242',
+  brightRed: '#ff7875',
+  brightGreen: '#95de64',
+  brightYellow: '#ffc53d',
+  brightBlue: '#4096ff',
+  brightMagenta: '#b37feb',
+  brightCyan: '#36cfc9',
+  brightWhite: '#ffffff',
 }
 
 const lightTheme = {
-  background: '#f8f8fa',
-  foreground: '#1a1a1e',
-  cursor: '#d97706',
-  cursorAccent: '#f8f8fa',
-  selectionBackground: 'rgba(217, 119, 6, 0.15)',
-  black: '#1a1a1e',
-  red: '#dc2626',
-  green: '#059669',
-  yellow: '#d97706',
-  blue: '#2563eb',
-  magenta: '#9333ea',
-  cyan: '#0891b2',
-  white: '#fafafa',
-  brightBlack: '#71717a',
-  brightRed: '#ef4444',
-  brightGreen: '#10b981',
-  brightYellow: '#f59e0b',
-  brightBlue: '#3b82f6',
-  brightMagenta: '#a855f7',
-  brightCyan: '#06b6d4',
-  brightWhite: '#ffffff',
+  background: '#ffffff',
+  foreground: 'rgba(0,0,0,0.88)',
+  cursor: '#1677ff',
+  cursorAccent: '#ffffff',
+  selectionBackground: 'rgba(22,119,255,0.15)',
+  black: 'rgba(0,0,0,0.88)',
+  red: '#ff4d4f',
+  green: '#389e0d',
+  yellow: '#d48806',
+  blue: '#1677ff',
+  magenta: '#722ed1',
+  cyan: '#08979c',
+  white: '#ffffff',
+  brightBlack: '#8c8c8c',
+  brightRed: '#ff7875',
+  brightGreen: '#73d13d',
+  brightYellow: '#ffc53d',
+  brightBlue: '#4096ff',
+  brightMagenta: '#b37feb',
+  brightCyan: '#36cfc9',
+  brightWhite: '#fafafa',
 }
 
 const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
@@ -62,8 +62,8 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     if (!containerRef.current || termRef.current) return
 
     const term = new Terminal({
-      theme: theme === 'dark' ? obsidianTheme : lightTheme,
-      fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+      theme: theme === 'dark' ? darkTheme : lightTheme,
+      fontFamily: "'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
       fontSize: 13,
       lineHeight: 1.5,
       cursorBlink: true,
@@ -73,7 +73,6 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     term.loadAddon(fit)
     term.open(containerRef.current)
 
-    // Fit after a short delay to ensure container has dimensions (may start hidden)
     const fitOnce = () => {
       try { fit.fit() } catch {}
       if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -85,7 +84,6 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     termRef.current = term
     fitRef.current = fit
 
-    // Re-fit when container resizes (including becoming visible)
     const observer = new ResizeObserver(() => {
       if (containerRef.current?.offsetWidth > 0) fitOnce()
     })
@@ -106,7 +104,7 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
 
   useEffect(() => {
     if (termRef.current) {
-      termRef.current.options.theme = theme === 'dark' ? obsidianTheme : lightTheme
+      termRef.current.options.theme = theme === 'dark' ? darkTheme : lightTheme
     }
   }, [theme])
 
@@ -139,7 +137,7 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     },
   }))
 
-  const bg = theme === 'dark' ? obsidianTheme.background : lightTheme.background
+  const bg = theme === 'dark' ? darkTheme.background : lightTheme.background
 
   return (
     <div

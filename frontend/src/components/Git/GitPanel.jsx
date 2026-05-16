@@ -51,17 +51,17 @@ export default function GitPanel({ cwd }) {
 
   if (loading && !overview) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ color: 'var(--text-ghost)' }}>
-        <div className="text-[13px] font-medium">Loading git info...</div>
+      <div className="flex items-center justify-center h-full" style={{ color: 'var(--text-quaternary)' }}>
+        <div className="text-[13px]">Loading git info...</div>
       </div>
     )
   }
 
   if (!overview) {
     return (
-      <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--text-ghost)' }}>
+      <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--text-quaternary)' }}>
         <GitBranch size={24} className="mb-2 opacity-30" />
-        <span className="text-[13px] font-medium">No git repository found</span>
+        <span className="text-[13px]">No git repository found</span>
       </div>
     )
   }
@@ -71,19 +71,19 @@ export default function GitPanel({ cwd }) {
       <div className="h-full flex flex-col overflow-hidden">
         <div
           className="flex items-center gap-2 px-4 py-2.5 shrink-0"
-          style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}
+          style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-secondary)' }}
         >
           <button
             onClick={() => setDiff(null)}
             className="p-1 rounded-md transition-colors"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             <ArrowLeft size={14} />
           </button>
-          <FileCode size={13} style={{ color: 'var(--text-ghost)' }} />
-          <span className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{diff.title}</span>
+          <FileCode size={13} style={{ color: 'var(--text-quaternary)' }} />
+          <span className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>{diff.title}</span>
         </div>
         <div className="flex-1 overflow-y-auto">
           <DiffViewer files={diff.files} />
@@ -97,7 +97,7 @@ export default function GitPanel({ cwd }) {
     A: 'var(--status-success)',
     D: 'var(--status-error)',
     R: 'var(--status-info)',
-    '?': 'var(--text-ghost)',
+    '?': 'var(--text-quaternary)',
   }
 
   return (
@@ -105,12 +105,12 @@ export default function GitPanel({ cwd }) {
       {/* Branch bar */}
       <div
         className="flex items-center gap-2.5 px-4 py-3"
-        style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}
+        style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-secondary)' }}
       >
-        <GitBranch size={14} style={{ color: 'var(--amber-5)' }} />
+        <GitBranch size={14} style={{ color: 'var(--primary)' }} />
         <span
-          className="px-2.5 py-1 rounded-lg text-[12px] font-mono font-medium"
-          style={{ color: 'var(--amber-4)', background: 'var(--glow-amber)', border: '1px solid rgba(245,158,11,0.2)' }}
+          className="px-2 py-0.5 rounded text-[12px] font-mono font-medium"
+          style={{ color: 'var(--primary)', background: 'var(--primary-bg)', border: '1px solid var(--primary-border)' }}
         >
           {overview.branchName}
         </span>
@@ -146,7 +146,7 @@ export default function GitPanel({ cwd }) {
 
       {/* Untracked */}
       {overview.untracked.length > 0 && (
-        <Section title="Untracked" count={overview.untracked.length} color="var(--text-ghost)">
+        <Section title="Untracked" count={overview.untracked.length} color="var(--text-quaternary)">
           {overview.untracked.map(f => (
             <FileRow key={f.path} file={f} color={statusColors[f.status]} />
           ))}
@@ -160,16 +160,16 @@ export default function GitPanel({ cwd }) {
             <button
               key={c.hash}
               onClick={() => showCommitDiff(c.hash)}
-              className="w-full text-left px-4 py-2.5 transition-all duration-200"
+              className="w-full text-left px-4 py-2.5 transition-colors duration-200"
               style={{ color: 'var(--text-secondary)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--obsidian-2)'}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-mono font-medium shrink-0" style={{ color: 'var(--amber-4)' }}>{c.shortHash}</span>
+                <span className="text-[11px] font-mono font-medium shrink-0" style={{ color: 'var(--primary)' }}>{c.shortHash}</span>
                 <span className="text-[12px] truncate flex-1" style={{ color: 'var(--text-primary)' }}>{c.message}</span>
               </div>
-              <div className="text-[10px] mt-1 flex items-center gap-1.5" style={{ color: 'var(--text-ghost)' }}>
+              <div className="text-[10px] mt-1 flex items-center gap-1.5" style={{ color: 'var(--text-quaternary)' }}>
                 <span>{c.author}</span>
                 <CircleDot size={8} />
                 <span>{timeAgo(c.date)}</span>
@@ -184,12 +184,12 @@ export default function GitPanel({ cwd }) {
 
 function Section({ title, count, color, children }) {
   return (
-    <div style={{ borderBottom: '1px solid var(--obsidian-4)' }}>
+    <div style={{ borderBottom: '1px solid var(--border-secondary)' }}>
       <div className="px-4 py-2.5 flex items-center gap-2">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--text-tertiary)' }}>{title}</h3>
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>{title}</h3>
         <span
-          className="text-[10px] font-mono px-1.5 py-0.5 rounded-md"
-          style={{ color, background: 'var(--obsidian-3)' }}
+          className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+          style={{ color, background: 'var(--bg-spotlight)' }}
         >
           {count}
         </span>
@@ -203,9 +203,9 @@ function FileRow({ file, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-all duration-200 text-left"
+      className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-colors duration-200 text-left"
       style={{ color: 'var(--text-secondary)' }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--obsidian-2)'}
+      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
       <span className="font-mono font-bold w-4 text-center shrink-0" style={{ color }}>{file.status}</span>

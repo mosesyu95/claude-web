@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Sun, Moon, Monitor, Plus, Sparkles } from 'lucide-react'
+import { Sun, Moon, Monitor, Plus, Bot } from 'lucide-react'
 import ActiveSessions from './ActiveSessions'
 import History from './History'
 
@@ -10,66 +10,61 @@ export default function Sidebar({ theme, effective, cycleTheme, onNewSession, ac
     <aside
       className="w-[272px] shrink-0 flex flex-col"
       style={{
-        background: 'var(--obsidian-1)',
-        borderRight: '1px solid var(--obsidian-4)',
+        background: 'var(--bg-elevated)',
+        borderRight: '1px solid var(--border-secondary)',
       }}
     >
-      {/* Header with gradient accent */}
-      <div className="relative px-4 pt-4 pb-3">
-        {/* Gradient line at top */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{ background: 'linear-gradient(90deg, var(--amber-6), var(--amber-4), var(--amber-6))', backgroundSize: '200% 100%', animation: 'gradientShift 6s ease infinite' }}
-        />
-
+      {/* Header */}
+      <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <div
               className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, var(--amber-7), var(--amber-5))', boxShadow: '0 2px 8px var(--glow-amber-strong)' }}
+              style={{ background: 'var(--primary)' }}
             >
-              <Sparkles size={14} className="text-white" />
+              <Bot size={15} className="text-white" />
             </div>
             <div>
-              <h1 className="text-[13px] font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Claude</h1>
-              <span className="text-[10px] font-medium" style={{ color: 'var(--amber-5)' }}>Web Console</span>
+              <h1 className="text-[14px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>Claude</h1>
+              <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Web Console</span>
             </div>
           </div>
           <div className="flex items-center gap-0.5">
             <button
               onClick={cycleTheme}
-              className="p-1.5 rounded-md transition-all duration-200"
+              className="p-1.5 rounded-md transition-colors duration-200"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
               title={theme === 'auto' ? 'Auto (system)' : theme === 'dark' ? 'Dark' : 'Light'}
             >
-              {theme === 'auto' ? <Monitor size={13} /> : theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+              {theme === 'auto' ? <Monitor size={14} /> : theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
             </button>
             <button
               onClick={onNewSession}
-              className="p-1.5 rounded-md transition-all duration-200"
+              className="p-1.5 rounded-md transition-colors duration-200"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--glow-amber)'; e.currentTarget.style.color = 'var(--amber-5)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary-bg)'; e.currentTarget.style.color = 'var(--primary)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
               title="New Session (Ctrl+Shift+N)"
             >
-              <Plus size={13} />
+              <Plus size={14} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Sidebar tabs */}
-      <div className="flex mx-3 mb-1 p-0.5 rounded-lg" style={{ background: 'var(--obsidian-3)' }}>
+      {/* Sidebar tabs — Ant Design segmented style */}
+      <div className="flex mx-3 mb-2 p-[2px] rounded-lg" style={{ background: 'var(--bg-spotlight)' }}>
         {['sessions', 'history'].map(tab => (
           <button
             key={tab}
             onClick={() => setSidebarTab(tab)}
-            className="flex-1 py-1.5 text-[11px] font-semibold capitalize rounded-md transition-all duration-200"
+            className="flex-1 py-1 text-[12px] font-medium capitalize rounded-md transition-all duration-200"
             style={{
-              color: sidebarTab === tab ? 'var(--amber-5)' : 'var(--text-tertiary)',
-              background: sidebarTab === tab ? 'var(--obsidian-5)' : 'transparent',
+              color: sidebarTab === tab ? 'var(--primary)' : 'var(--text-tertiary)',
+              background: sidebarTab === tab ? 'var(--bg-elevated)' : 'transparent',
+              boxShadow: sidebarTab === tab ? 'var(--shadow-sm)' : 'none',
             }}
           >
             {tab}

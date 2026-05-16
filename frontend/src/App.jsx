@@ -196,8 +196,8 @@ export default function App() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Tab bar */}
-        <div className="flex items-center gap-0.5 px-3 py-1.5 shrink-0"
-          style={{ background: 'var(--obsidian-1)', borderBottom: '1px solid var(--obsidian-4)' }}>
+        <div className="flex items-center px-3 shrink-0"
+          style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-secondary)' }}>
           {MAIN_TABS.map(tab => {
             const Icon = tab.icon
             const active = activeMainTab === tab.key
@@ -205,18 +205,17 @@ export default function App() {
               <button
                 key={tab.key}
                 onClick={() => setActiveMainTab(tab.key)}
-                className="relative flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-md transition-all duration-200"
+                className="relative flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors duration-200"
                 style={{
-                  color: active ? 'var(--amber-5)' : 'var(--text-tertiary)',
-                  background: active ? 'var(--glow-amber)' : 'transparent',
+                  color: active ? 'var(--primary)' : 'var(--text-tertiary)',
                 }}
               >
-                <Icon size={13} strokeWidth={active ? 2.2 : 1.8} />
+                <Icon size={14} strokeWidth={active ? 2 : 1.5} />
                 {tab.label}
                 {active && (
                   <span
                     className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full"
-                    style={{ background: 'linear-gradient(90deg, var(--amber-6), var(--amber-4))' }}
+                    style={{ background: 'var(--primary)' }}
                   />
                 )}
               </button>
@@ -225,7 +224,7 @@ export default function App() {
         </div>
 
         {/* Tab panels — use absolute+visibility so xterm containers always have dimensions */}
-        <div className="flex-1 overflow-hidden relative" style={{ background: 'var(--obsidian-0)' }}>
+        <div className="flex-1 overflow-hidden relative" style={{ background: 'var(--bg-base)' }}>
           <div className="absolute inset-0" style={{ visibility: activeMainTab === 'chat' ? 'visible' : 'hidden', zIndex: activeMainTab === 'chat' ? 1 : 0 }}>
             <ChatPanel
               session={chatSession}

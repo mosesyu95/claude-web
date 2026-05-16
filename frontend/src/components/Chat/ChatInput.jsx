@@ -21,14 +21,14 @@ export default function ChatInput({ onSend, busy }) {
   }, [handleSend])
 
   return (
-    <div className="px-5 py-3 shrink-0" style={{ background: 'var(--obsidian-1)', borderTop: '1px solid var(--obsidian-4)' }}>
+    <div className="px-5 py-3 shrink-0" style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border-secondary)' }}>
       <div className="max-w-[800px] mx-auto">
         <div
-          className="flex items-end gap-2 rounded-xl px-4 py-2.5 transition-all duration-300"
+          className="flex items-end gap-2 rounded-lg px-3 py-2 transition-all duration-200"
           style={{
-            background: 'var(--obsidian-2)',
-            border: `1px solid ${focused ? 'var(--amber-6)' : 'var(--obsidian-4)'}`,
-            boxShadow: focused ? '0 0 0 3px var(--glow-amber)' : 'none',
+            background: 'var(--bg-base)',
+            border: `1px solid ${focused ? 'var(--primary)' : 'var(--border)'}`,
+            boxShadow: focused ? '0 0 0 2px var(--primary-bg)' : 'none',
           }}
         >
           <textarea
@@ -51,17 +51,16 @@ export default function ChatInput({ onSend, busy }) {
             }}
           />
           <div className="flex items-center gap-2 shrink-0 pb-0.5">
-            <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-ghost)' }}>
+            <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-quaternary)' }}>
               <CornerDownLeft size={10} /> send
             </span>
             <button
               onClick={handleSend}
               disabled={!text.trim()}
-              className="p-1.5 rounded-lg transition-all duration-200"
+              className="p-1.5 rounded-md transition-colors duration-200"
               style={{
-                background: text.trim() ? 'linear-gradient(135deg, var(--amber-7), var(--amber-5))' : 'var(--obsidian-4)',
-                color: text.trim() ? 'white' : 'var(--text-ghost)',
-                boxShadow: text.trim() ? '0 2px 8px var(--glow-amber)' : 'none',
+                background: text.trim() ? 'var(--primary)' : 'var(--bg-spotlight)',
+                color: text.trim() ? 'var(--text-inverse)' : 'var(--text-quaternary)',
               }}
             >
               <Send size={14} />
