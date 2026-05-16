@@ -98,6 +98,9 @@ body {
 .xterm {
   padding: 8px 4px;
 }
+.xterm .xterm-viewport {
+  background-color: transparent !important;
+}
 .xterm-viewport::-webkit-scrollbar {
   width: 5px;
 }
