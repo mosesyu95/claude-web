@@ -105,7 +105,7 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
       </div>
 
       {/* Input */}
-      <ChatInput onSend={onSend} disabled={status === 'busy'} />
+      <ChatInput onSend={onSend} busy={status === 'busy'} />
     </div>
   )
 }

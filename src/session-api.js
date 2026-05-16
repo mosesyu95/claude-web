@@ -283,9 +283,25 @@ function createSessionRouter() {
         } catch (e) {}
       }
 
-      // Sort by most recently started
-      sessions.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
-      res.json({ sessions });
+      // Deduplicate by sessionId — subprocesses share the same sessionId as their parent
+      const bySession = new Map();
+      for (const s of sessions) {
+        const existing = bySession.get(s.sessionId);
+        if (!existing) {
+          bySession.set(s.sessionId, s);
+        } else {
+          // Prefer the entry that's busy, or the one with the earliest startedAt
+          if (s.status === 'busy' && existing.status !== 'busy') {
+            bySession.set(s.sessionId, s);
+          } else if (s.status === existing.status && (s.startedAt || 0) < (existing.startedAt || 0)) {
+            bySession.set(s.sessionId, s);
+          }
+        }
+      }
+
+      const deduped = Array.from(bySession.values());
+      deduped.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+      res.json({ sessions: deduped });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -468,7 +484,9 @@ function parseConversationTurns(records) {
         currentTurn.parts.push({ type: 'text', text: content });
       }
     } else if (record.type === 'system') {
-      currentTurn.parts.push({ type: 'text', text: record.content || '' });
+      const c = record.content || '';
+      if (c.includes('<command-name>') || c.includes('<local-command')) continue;
+      currentTurn.parts.push({ type: 'text', text: c });
     }
   }
 

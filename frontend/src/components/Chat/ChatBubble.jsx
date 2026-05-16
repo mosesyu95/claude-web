@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { getToolIcon } from '../../helpers'
+import { getToolIcon, timeAgo } from '../../helpers'
 import { ChevronDown, ChevronRight, Brain, Wrench } from 'lucide-react'
 
 export default function ChatBubble({ turn }) {
   if (turn.role === 'user') {
     return (
-      <div className="flex justify-end">
+      <div className="flex flex-col items-end">
         <div
           className="max-w-[70%] px-4 py-2.5 rounded-2xl rounded-br-md text-[13px] leading-relaxed"
           style={{
@@ -18,13 +18,16 @@ export default function ChatBubble({ turn }) {
             <div key={i} className="whitespace-pre-wrap">{p.text}</div>
           ))}
         </div>
+        {turn.timestamp && (
+          <span className="text-[10px] mt-1 mr-1" style={{ color: 'var(--text-ghost)' }}>{timeAgo(turn.timestamp)}</span>
+        )}
       </div>
     )
   }
 
   if (turn.role === 'assistant') {
     return (
-      <div className="flex justify-start">
+      <div className="flex flex-col items-start">
         <div className="max-w-[85%] space-y-2.5">
           {turn.parts?.map((part, i) => {
             if (part.type === 'text') {
@@ -51,6 +54,9 @@ export default function ChatBubble({ turn }) {
             return null
           })}
         </div>
+        {turn.timestamp && (
+          <span className="text-[10px] mt-1 ml-1" style={{ color: 'var(--text-ghost)' }}>{timeAgo(turn.timestamp)}</span>
+        )}
       </div>
     )
   }

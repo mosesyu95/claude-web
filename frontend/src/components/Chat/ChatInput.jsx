@@ -1,17 +1,17 @@
 import { useState, useRef, useCallback } from 'react'
 import { Send, CornerDownLeft } from 'lucide-react'
 
-export default function ChatInput({ onSend, disabled }) {
+export default function ChatInput({ onSend, busy }) {
   const [text, setText] = useState('')
   const [focused, setFocused] = useState(false)
   const ref = useRef()
 
   const handleSend = useCallback(() => {
-    if (!text.trim() || disabled) return
+    if (!text.trim()) return
     onSend(text)
     setText('')
     ref.current?.focus()
-  }, [text, disabled, onSend])
+  }, [text, onSend])
 
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -38,8 +38,7 @@ export default function ChatInput({ onSend, disabled }) {
             onKeyDown={handleKeyDown}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            disabled={disabled}
-            placeholder={disabled ? 'Waiting for response...' : 'Ask Claude anything...'}
+            placeholder={busy ? 'Respond to prompts or type a message...' : 'Ask Claude anything...'}
             rows={1}
             className="flex-1 resize-none bg-transparent text-[13px] focus:outline-none min-h-[24px] max-h-[120px]"
             style={{
@@ -52,19 +51,17 @@ export default function ChatInput({ onSend, disabled }) {
             }}
           />
           <div className="flex items-center gap-2 shrink-0 pb-0.5">
-            {!disabled && (
-              <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-ghost)' }}>
-                <CornerDownLeft size={10} /> send
-              </span>
-            )}
+            <span className="text-[10px] flex items-center gap-1" style={{ color: 'var(--text-ghost)' }}>
+              <CornerDownLeft size={10} /> send
+            </span>
             <button
               onClick={handleSend}
-              disabled={!text.trim() || disabled}
+              disabled={!text.trim()}
               className="p-1.5 rounded-lg transition-all duration-200"
               style={{
-                background: text.trim() && !disabled ? 'linear-gradient(135deg, var(--amber-7), var(--amber-5))' : 'var(--obsidian-4)',
-                color: text.trim() && !disabled ? 'white' : 'var(--text-ghost)',
-                boxShadow: text.trim() && !disabled ? '0 2px 8px var(--glow-amber)' : 'none',
+                background: text.trim() ? 'linear-gradient(135deg, var(--amber-7), var(--amber-5))' : 'var(--obsidian-4)',
+                color: text.trim() ? 'white' : 'var(--text-ghost)',
+                boxShadow: text.trim() ? '0 2px 8px var(--glow-amber)' : 'none',
               }}
             >
               <Send size={14} />
