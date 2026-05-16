@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Sun, Moon, Plus, Sparkles } from 'lucide-react'
+import { Sun, Moon, Monitor, Plus, Sparkles } from 'lucide-react'
 import ActiveSessions from './ActiveSessions'
 import History from './History'
 
-export default function Sidebar({ theme, toggleTheme, onNewSession, activeSessions, onResumeSession, currentSessionId, onOpenConversation }) {
+export default function Sidebar({ theme, effective, cycleTheme, onNewSession, activeSessions, onResumeSession, currentSessionId, onOpenConversation }) {
   const [sidebarTab, setSidebarTab] = useState('sessions')
 
   return (
@@ -37,14 +37,14 @@ export default function Sidebar({ theme, toggleTheme, onNewSession, activeSessio
           </div>
           <div className="flex items-center gap-0.5">
             <button
-              onClick={toggleTheme}
+              onClick={cycleTheme}
               className="p-1.5 rounded-md transition-all duration-200"
               style={{ color: 'var(--text-tertiary)' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--obsidian-4)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              title={theme === 'auto' ? 'Auto (system)' : theme === 'dark' ? 'Dark' : 'Light'}
             >
-              {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+              {theme === 'auto' ? <Monitor size={13} /> : theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
             </button>
             <button
               onClick={onNewSession}

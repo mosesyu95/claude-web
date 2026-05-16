@@ -21,7 +21,7 @@ const MAIN_TABS = [
 ]
 
 export default function App() {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, effective, cycleTheme } = useTheme()
   const wsHook = useWebSocket()
 
   const [activeMainTab, setActiveMainTab] = useState('chat')
@@ -181,7 +181,8 @@ export default function App() {
     <div className="flex h-full overflow-hidden">
       <Sidebar
         theme={theme}
-        toggleTheme={toggleTheme}
+        effective={effective}
+        cycleTheme={cycleTheme}
         onNewSession={() => setShowNewSession(true)}
         activeSessions={activeSessions}
         onResumeSession={resumeSession}
@@ -237,7 +238,7 @@ export default function App() {
             />
           </div>
           <div className={`h-full ${activeMainTab === 'raw' ? '' : 'hidden'}`}>
-            <RawTerminal ref={rawTermRef} theme={theme} />
+            <RawTerminal ref={rawTermRef} theme={effective} />
           </div>
           <div className={`h-full ${activeMainTab === 'git' ? '' : 'hidden'}`}>
             <GitPanel cwd={chatSession?.cwd} />
@@ -246,7 +247,7 @@ export default function App() {
             <FilesPanel cwd={chatSession?.cwd} />
           </div>
           <div className={`h-full ${activeMainTab === 'bash' ? '' : 'hidden'}`}>
-            <BashTerminal cwd={chatSession?.cwd} theme={theme} active={activeMainTab === 'bash'} />
+            <BashTerminal cwd={chatSession?.cwd} theme={effective} active={activeMainTab === 'bash'} />
           </div>
         </div>
       </main>

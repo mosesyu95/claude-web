@@ -73,16 +73,22 @@ const RawTerminal = forwardRef(function RawTerminal({ theme }, ref) {
     const fit = new FitAddon()
     term.loadAddon(fit)
     term.open(containerRef.current)
-    fit.fit()
 
-    termRef.current = term
-    fitRef.current = fit
-
-    const observer = new ResizeObserver(() => {
+    // Fit after a short delay to ensure container has dimensions (may start hidden)
+    const fitOnce = () => {
       try { fit.fit() } catch {}
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }))
       }
+    }
+    setTimeout(fitOnce, 50)
+
+    termRef.current = term
+    fitRef.current = fit
+
+    // Re-fit when container resizes (including becoming visible)
+    const observer = new ResizeObserver(() => {
+      if (containerRef.current?.offsetWidth > 0) fitOnce()
     })
     observer.observe(containerRef.current)
 

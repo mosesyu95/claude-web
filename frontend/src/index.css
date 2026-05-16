@@ -3,13 +3,50 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@font-face {
-  font-family: 'Plus Jakarta Sans';
-  font-display: swap;
+:root {
+  /* Amber accent (shared) */
+  --amber-1: #fffbeb;
+  --amber-2: #fef3c7;
+  --amber-3: #fde68a;
+  --amber-4: #fcd34d;
+  --amber-5: #fbbf24;
+  --amber-6: #f59e0b;
+  --amber-7: #d97706;
+  --amber-8: #b45309;
+
+  /* Status (shared) */
+  --status-success: #34d399;
+  --status-error: #f87171;
+  --status-warning: #fbbf24;
+  --status-info: #60a5fa;
+
+  /* Typography */
+  --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Light theme defaults */
+  --obsidian-0: #f8f8fa;
+  --obsidian-1: #ffffff;
+  --obsidian-2: #f4f4f5;
+  --obsidian-3: #e4e4e7;
+  --obsidian-4: #d4d4d8;
+  --obsidian-5: #a1a1aa;
+  --obsidian-6: #71717a;
+  --obsidian-7: #52525b;
+  --obsidian-8: #3f3f46;
+
+  --text-primary: #1a1a1e;
+  --text-secondary: #52525b;
+  --text-tertiary: #71717a;
+  --text-ghost: #a1a1aa;
+
+  --glow-amber: rgba(245, 158, 11, 0.1);
+  --glow-amber-strong: rgba(245, 158, 11, 0.2);
+  --glow-success: rgba(52, 211, 153, 0.12);
+  --glow-error: rgba(248, 113, 113, 0.12);
 }
 
-:root {
-  /* Obsidian palette - warm deep blacks */
+.dark {
   --obsidian-0: #08080a;
   --obsidian-1: #0c0c0e;
   --obsidian-2: #111113;
@@ -20,37 +57,15 @@
   --obsidian-7: #404046;
   --obsidian-8: #52525b;
 
-  /* Amber accent */
-  --amber-1: #fffbeb;
-  --amber-2: #fef3c7;
-  --amber-3: #fde68a;
-  --amber-4: #fcd34d;
-  --amber-5: #fbbf24;
-  --amber-6: #f59e0b;
-  --amber-7: #d97706;
-  --amber-8: #b45309;
-
-  /* Text */
   --text-primary: #e8e8ec;
   --text-secondary: #a0a0ab;
   --text-tertiary: #6b6b76;
   --text-ghost: #45454e;
 
-  /* Status */
-  --status-success: #34d399;
-  --status-error: #f87171;
-  --status-warning: #fbbf24;
-  --status-info: #60a5fa;
-
-  /* Accent glow */
   --glow-amber: rgba(245, 158, 11, 0.12);
   --glow-amber-strong: rgba(245, 158, 11, 0.25);
   --glow-success: rgba(52, 211, 153, 0.15);
   --glow-error: rgba(248, 113, 113, 0.15);
-
-  /* Typography */
-  --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 html, body, #root {
@@ -63,14 +78,9 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.dark body {
+body {
   background: var(--obsidian-0);
   color: var(--text-primary);
-}
-
-body {
-  background: #f8f8fa;
-  color: #1a1a1e;
 }
 
 /* Noise texture overlay for depth */
@@ -151,9 +161,4 @@ body {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
-}
-
-@keyframes shimmer {
-  from { background-position: -200% 0; }
-  to { background-position: 200% 0; }
 }

@@ -21,7 +21,8 @@ export default function FilesPanel({ cwd }) {
   }, [])
 
   useEffect(() => {
-    if (cwd) loadDir(cwd)
+    const d = cwd || window._homeDir
+    if (d && !dir) loadDir(d)
   }, [cwd, loadDir])
 
   const openFile = async (path) => {

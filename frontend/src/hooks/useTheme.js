@@ -2,31 +2,39 @@ import { useState, useEffect, useCallback } from 'react'
 
 export function useTheme() {
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('cw-theme')
-    if (saved) return saved
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return localStorage.getItem('cw-theme') || 'auto'
   })
 
+  const [effective, setEffective] = useState('dark')
+
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('cw-theme', theme)
+    if (theme === 'auto') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      const update = () => setEffective(mq.matches ? 'dark' : 'light')
+      update()
+      mq.addEventListener('change', update)
+      return () => mq.removeEventListener('change', update)
+    } else {
+      setEffective(theme)
+    }
   }, [theme])
 
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e) => {
-      if (!localStorage.getItem('cw-theme')) {
-        setTheme(e.matches ? 'dark' : 'light')
-      }
-    }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+    document.documentElement.classList.toggle('dark', effective === 'dark')
+    document.documentElement.setAttribute('data-theme', effective)
+  }, [effective])
+
+  useEffect(() => {
+    localStorage.setItem('cw-theme', theme)
+  }, [theme])
+
+  const cycleTheme = useCallback(() => {
+    setTheme(t => {
+      if (t === 'dark') return 'light'
+      if (t === 'light') return 'auto'
+      return 'dark'
+    })
   }, [])
 
-  const toggleTheme = useCallback(() => {
-    setTheme(t => t === 'dark' ? 'light' : 'dark')
-  }, [])
-
-  return { theme, toggleTheme }
+  return { theme, effective, cycleTheme }
 }
