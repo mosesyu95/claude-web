@@ -98,13 +98,11 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
                 onClick={() => {
                   if (!s.isLocal) onResumeSession(s.id, s.cwd, s.title)
                 }}
-                className="group w-full text-left px-2.5 py-2 flex items-center gap-2.5 rounded-lg text-[13px] transition-colors duration-200 mb-0.5"
+                className={`group w-full text-left px-2.5 py-2 flex items-center gap-2.5 rounded-lg text-[13px] transition-colors duration-200 mb-0.5${!isActive ? ' hover-bg-spotlight' : ''}`}
                 style={{
                   color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--primary-bg)' : 'transparent',
                 }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg-spotlight)' }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
               >
                 <span className="relative flex-shrink-0">
                   <span
@@ -143,10 +141,8 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
                       e.stopPropagation()
                       handleDelete(s.id, s.cwd)
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200 cursor-pointer"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200 cursor-pointer hover-danger"
                     style={{ color: 'var(--text-quaternary)' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--status-error)'; e.currentTarget.style.background = 'rgba(255,77,79,0.08)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-quaternary)'; e.currentTarget.style.background = 'transparent' }}
                     title="Delete"
                   >
                     <Trash2 size={12} />

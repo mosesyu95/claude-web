@@ -33,13 +33,11 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
         <div className="flex flex-col items-center gap-1 mb-3">
           <button
             onClick={() => { setSidebarTab('sessions'); onToggleCollapse() }}
-            className="relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            className={`relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors${sidebarTab !== 'sessions' ? ' hover-bg-spotlight' : ''}`}
             style={{
               color: sidebarTab === 'sessions' ? 'var(--primary)' : 'var(--text-tertiary)',
               background: sidebarTab === 'sessions' ? 'var(--primary-bg)' : 'transparent',
             }}
-            onMouseEnter={e => { if (sidebarTab !== 'sessions') e.currentTarget.style.background = 'var(--bg-spotlight)' }}
-            onMouseLeave={e => { if (sidebarTab !== 'sessions') e.currentTarget.style.background = sidebarTab === 'sessions' ? 'var(--primary-bg)' : 'transparent' }}
             title="Sessions"
           >
             <MessageSquare size={16} />
@@ -54,13 +52,11 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
           </button>
           <button
             onClick={() => { setSidebarTab('history'); onToggleCollapse() }}
-            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors${sidebarTab !== 'history' ? ' hover-bg-spotlight' : ''}`}
             style={{
               color: sidebarTab === 'history' ? 'var(--primary)' : 'var(--text-tertiary)',
               background: sidebarTab === 'history' ? 'var(--primary-bg)' : 'transparent',
             }}
-            onMouseEnter={e => { if (sidebarTab !== 'history') e.currentTarget.style.background = 'var(--bg-spotlight)' }}
-            onMouseLeave={e => { if (sidebarTab !== 'history') e.currentTarget.style.background = sidebarTab === 'history' ? 'var(--primary-bg)' : 'transparent' }}
             title="History"
           >
             <HistoryIcon size={16} />
@@ -74,30 +70,24 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
         <div className="flex flex-col items-center gap-1 pb-4">
           <button
             onClick={cycleTheme}
-            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors hover-bg-spotlight-text"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
             title={theme === 'auto' ? 'Auto (system)' : theme === 'dark' ? 'Dark' : 'Light'}
           >
             {theme === 'auto' ? <Monitor size={16} /> : theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <button
             onClick={onNewSession}
-            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors hover-primary-accent"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary-bg)'; e.currentTarget.style.color = 'var(--primary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
             title="New Session (Ctrl+Shift+N)"
           >
             <Plus size={16} />
           </button>
           <button
             onClick={onToggleCollapse}
-            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors hover-bg-spotlight-text"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
             title="Expand sidebar (Ctrl+B)"
           >
             <PanelLeftOpen size={16} />
@@ -134,30 +124,24 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
           <div className="flex items-center gap-0.5">
             <button
               onClick={cycleTheme}
-              className="p-1.5 rounded-md transition-colors duration-200"
+              className="p-1.5 rounded-md transition-colors duration-200 hover-bg-spotlight-text"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
               title={theme === 'auto' ? 'Auto (system)' : theme === 'dark' ? 'Dark' : 'Light'}
             >
               {theme === 'auto' ? <Monitor size={14} /> : theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
             </button>
             <button
               onClick={onNewSession}
-              className="p-1.5 rounded-md transition-colors duration-200"
+              className="p-1.5 rounded-md transition-colors duration-200 hover-primary-accent"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary-bg)'; e.currentTarget.style.color = 'var(--primary)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
               title="New Session (Ctrl+Shift+N)"
             >
               <Plus size={14} />
             </button>
             <button
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-md transition-colors duration-200"
+              className="p-1.5 rounded-md transition-colors duration-200 hover-bg-spotlight-text"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
               title="Collapse sidebar (Ctrl+B)"
             >
               <PanelLeftClose size={14} />

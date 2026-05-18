@@ -84,10 +84,8 @@ export default function History({ onOpenConversation, onResumeSession }) {
         <div key={project.dirName} style={{ animation: `slideInRight 0.3s ease ${pi * 30}ms both` }}>
           <button
             onClick={() => toggleExpand(project.dirName)}
-            className="w-full text-left px-2.5 py-2 flex items-center gap-1.5 rounded-lg text-[12px] font-medium transition-colors duration-200"
+            className="w-full text-left px-2.5 py-2 flex items-center gap-1.5 rounded-lg text-[12px] font-medium transition-colors duration-200 hover-bg-spotlight"
             style={{ color: 'var(--text-secondary)' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             {expanded[project.dirName]
               ? <ChevronDown size={12} style={{ color: 'var(--text-quaternary)' }} />
@@ -106,10 +104,8 @@ export default function History({ onOpenConversation, onResumeSession }) {
               {project.sessions.map(session => (
                 <div
                   key={session.sessionId}
-                  className="group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors duration-200"
+                  className="group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors duration-200 hover-bg-spotlight-text"
                   style={{ color: 'var(--text-tertiary)' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
                   onClick={() => onOpenConversation(session.sessionId, project.projectPath, project.projectPath, session.title)}
                 >
                   <div className="flex-1 min-w-0">
@@ -143,10 +139,8 @@ export default function History({ onOpenConversation, onResumeSession }) {
                       e.stopPropagation()
                       handleDelete(session.sessionId, project.dirName)
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200 hover-danger"
                     style={{ color: 'var(--text-quaternary)' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--status-error)'; e.currentTarget.style.background = 'rgba(255,77,79,0.08)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-quaternary)'; e.currentTarget.style.background = 'transparent' }}
                     title="Delete"
                   >
                     <Trash2 size={12} />
@@ -156,10 +150,8 @@ export default function History({ onOpenConversation, onResumeSession }) {
                       e.stopPropagation()
                       onResumeSession(session.sessionId, project.projectPath, session.title)
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200"
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200 hover-primary-accent"
                     style={{ color: 'var(--primary)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-bg)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     title="Resume"
                   >
                     <Play size={12} />

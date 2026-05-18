@@ -132,6 +132,19 @@ body {
   background: rgba(255, 77, 79, 0.12);
 }
 
+/* Hover utility classes */
+.hover-bg-spotlight:hover { background: var(--bg-spotlight) !important; }
+.hover-bg-spotlight-text:hover { background: var(--bg-spotlight) !important; color: var(--text-secondary) !important; }
+.hover-primary-accent:hover { background: var(--primary-bg) !important; color: var(--primary) !important; }
+.hover-btn-primary:hover { background: var(--primary-hover) !important; }
+.hover-danger:hover { background: rgba(255,77,79,0.08) !important; color: var(--status-error) !important; }
+.hover-text-primary:hover { color: var(--text-primary) !important; }
+.hover-text-accent:hover { color: var(--primary) !important; }
+.hover-border-accent:hover { border-color: var(--primary) !important; color: var(--primary) !important; }
+
+/* Focus utility class */
+.focus-ring:focus { border-color: var(--primary) !important; box-shadow: 0 0 0 2px var(--primary-bg) !important; outline: none; }
+
 /* Animations */
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }

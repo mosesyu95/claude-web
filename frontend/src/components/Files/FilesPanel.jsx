@@ -50,10 +50,8 @@ export default function FilesPanel({ cwd }) {
       >
         <button
           onClick={() => rootDir && loadDir(rootDir)}
-          className="text-[12px] font-mono px-1.5 py-0.5 rounded transition-colors truncate max-w-[140px]"
+          className="text-[12px] font-mono px-1.5 py-0.5 rounded transition-colors truncate max-w-[140px] hover-text-accent"
           style={{ color: 'var(--text-tertiary)' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--primary)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
         >
           {rootParts[rootParts.length - 1] || '/'}
         </button>
@@ -64,10 +62,8 @@ export default function FilesPanel({ cwd }) {
               <ChevronRight size={10} style={{ color: 'var(--text-quaternary)' }} />
               <button
                 onClick={() => loadDir(path)}
-                className="text-[12px] font-mono px-1.5 py-0.5 rounded transition-colors truncate max-w-[120px]"
+                className="text-[12px] font-mono px-1.5 py-0.5 rounded transition-colors truncate max-w-[120px] hover-text-primary"
                 style={{ color: 'var(--text-tertiary)' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
               >
                 {part}
               </button>
@@ -94,10 +90,8 @@ export default function FilesPanel({ cwd }) {
             </div>
             <button
               onClick={() => setFileView(null)}
-              className="p-1 rounded-md transition-colors"
+              className="p-1 rounded-md transition-colors hover-bg-spotlight-text"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
             >
               <X size={13} />
             </button>
@@ -121,10 +115,8 @@ export default function FilesPanel({ cwd }) {
           {listing?.parent && (
             <button
               onClick={() => loadDir(listing.parent)}
-              className="w-full flex items-center gap-2 px-4 py-2 text-[12px] transition-colors duration-200"
+              className="w-full flex items-center gap-2 px-4 py-2 text-[12px] transition-colors duration-200 hover-bg-spotlight-text"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
             >
               <ArrowLeft size={12} />
               <span>..</span>
@@ -134,10 +126,8 @@ export default function FilesPanel({ cwd }) {
             <button
               key={item.path}
               onClick={() => item.type === 'dir' ? loadDir(item.path) : openFile(item.path)}
-              className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-colors duration-200 text-left"
+              className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-colors duration-200 text-left hover-bg-spotlight"
               style={{ color: 'var(--text-secondary)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <span className="shrink-0 text-[14px]">{fileIcon(item.name, item.type)}</span>
               <span className="flex-1 truncate" style={{ color: 'var(--text-primary)' }}>{item.name}</span>

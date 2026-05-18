@@ -75,10 +75,8 @@ export default function GitPanel({ cwd }) {
         >
           <button
             onClick={() => setDiff(null)}
-            className="p-1 rounded-md transition-colors"
+            className="p-1 rounded-md transition-colors hover-bg-spotlight-text"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             <ArrowLeft size={14} />
           </button>
@@ -160,10 +158,8 @@ export default function GitPanel({ cwd }) {
             <button
               key={c.hash}
               onClick={() => showCommitDiff(c.hash)}
-              className="w-full text-left px-4 py-2.5 transition-colors duration-200"
+              className="w-full text-left px-4 py-2.5 transition-colors duration-200 hover-bg-spotlight"
               style={{ color: 'var(--text-secondary)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-mono font-medium shrink-0" style={{ color: 'var(--primary)' }}>{c.shortHash}</span>
@@ -203,10 +199,8 @@ function FileRow({ file, color, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-colors duration-200 text-left"
+      className="w-full flex items-center gap-2.5 px-4 py-2 text-[12px] transition-colors duration-200 text-left hover-bg-spotlight"
       style={{ color: 'var(--text-secondary)' }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
       <span className="font-mono font-bold w-4 text-center shrink-0" style={{ color }}>{file.status}</span>
       <span className="truncate">{file.path}</span>

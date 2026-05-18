@@ -33,13 +33,11 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
         </div>
         <button
           onClick={onStartNew}
-          className="px-5 py-2 text-[13px] font-medium rounded-lg transition-colors duration-200"
+          className="px-5 py-2 text-[13px] font-medium rounded-lg transition-colors duration-200 hover-btn-primary"
           style={{
             background: 'var(--primary)',
             color: 'var(--text-inverse)',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-hover)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--primary)'}
         >
           Start New Session
         </button>
@@ -86,19 +84,15 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={onDetach}
-            className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200"
+            className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200 hover-bg-spotlight-text"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             Detach
           </button>
           <button
             onClick={onKill}
-            className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200"
+            className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200 hover-danger"
             style={{ color: 'var(--status-error)' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,77,79,0.08)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             Kill
           </button>

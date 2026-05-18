@@ -113,10 +113,8 @@ export default function NewSessionDialog({ onStart, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-md transition-colors"
+              className="p-1.5 rounded-md transition-colors hover-bg-spotlight-text"
               style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
             >
               <X size={14} />
             </button>
@@ -134,10 +132,8 @@ export default function NewSessionDialog({ onStart, onClose }) {
                 <button
                   key={dir}
                   onClick={() => navigateTo(dir)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-left transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-left transition-colors hover-bg-spotlight"
                   style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <FolderOpen size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
                   <span className="truncate">{displayPath(dir)}</span>
@@ -152,10 +148,8 @@ export default function NewSessionDialog({ onStart, onClose }) {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={goUp}
-                  className="p-1 rounded transition-colors"
+                  className="p-1 rounded transition-colors hover-bg-spotlight-text"
                   style={{ color: 'var(--text-tertiary)' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
                 >
                   <ArrowLeft size={14} />
                 </button>
@@ -168,11 +162,9 @@ export default function NewSessionDialog({ onStart, onClose }) {
                 </div>
                 <button
                   onClick={() => { setShowNewFolder(!showNewFolder); setNewFolder('') }}
-                  className="p-1 rounded transition-colors"
+                  className="p-1 rounded transition-colors hover-primary-accent"
                   style={{ color: showNewFolder ? 'var(--primary)' : 'var(--text-tertiary)' }}
                   title="New folder"
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--primary)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = showNewFolder ? 'var(--primary)' : 'var(--text-tertiary)' }}
                 >
                   <FolderPlus size={14} />
                 </button>
@@ -190,15 +182,13 @@ export default function NewSessionDialog({ onStart, onClose }) {
                     onChange={e => setNewFolder(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleCreateFolder() }}
                     placeholder="Folder name"
-                    className="flex-1 rounded-md px-3 py-1.5 text-[12px] focus:outline-none"
+                    className="flex-1 rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus-ring"
                     style={{
                       background: 'var(--bg-base)',
                       color: 'var(--text-primary)',
                       border: '1px solid var(--border)',
                       fontFamily: 'var(--font-mono)',
                     }}
-                    onFocus={e => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 2px var(--primary-bg)' }}
-                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
                   />
                   <button
                     onClick={handleCreateFolder}
@@ -226,14 +216,12 @@ export default function NewSessionDialog({ onStart, onClose }) {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Filter directories..."
-                  className="w-full rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none"
+                  className="w-full rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none focus-ring"
                   style={{
                     background: 'var(--bg-base)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--border)',
                   }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--primary)'; e.target.style.boxShadow = '0 0 0 2px var(--primary-bg)' }}
-                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
                 />
               </div>
             </div>
@@ -254,10 +242,8 @@ export default function NewSessionDialog({ onStart, onClose }) {
                       <button
                         key={name}
                         onClick={() => navigateTo(fullPath)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-left transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 rounded-md text-[12px] text-left transition-colors hover-bg-spotlight"
                         style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-spotlight)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <FolderOpen size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
                         <span className="truncate flex-1">{name}</span>
@@ -279,24 +265,20 @@ export default function NewSessionDialog({ onStart, onClose }) {
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200"
+              className="px-4 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200 hover-border-accent"
               style={{ color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
             >
               Cancel
             </button>
             <button
               onClick={() => currentPath && onStart(currentPath)}
               disabled={!currentPath}
-              className="px-5 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200"
+              className={`px-5 py-2 text-[12px] font-medium rounded-lg transition-colors duration-200${currentPath ? ' hover-btn-primary' : ''}`}
               style={{
                 background: currentPath ? 'var(--primary)' : 'var(--bg-spotlight)',
                 color: currentPath ? 'var(--text-inverse)' : 'var(--text-quaternary)',
                 border: 'none',
               }}
-              onMouseEnter={e => { if (currentPath) e.currentTarget.style.background = 'var(--primary-hover)' }}
-              onMouseLeave={e => { if (currentPath) e.currentTarget.style.background = 'var(--primary)' }}
             >
               Start Session
             </button>

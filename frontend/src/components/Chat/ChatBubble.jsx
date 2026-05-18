@@ -84,10 +84,8 @@ function ThinkingBlock({ text }) {
     <div className="rounded-lg overflow-hidden" style={{ background: 'var(--bg-spotlight)', border: '1px solid var(--border-secondary)' }}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-3.5 py-2 text-[12px] transition-colors duration-200"
+        className="w-full flex items-center gap-2 px-3.5 py-2 text-[12px] transition-colors duration-200 hover:bg-[var(--bg-container)]"
         style={{ color: 'var(--text-tertiary)' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-container)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         <Brain size={12} style={{ color: 'var(--primary)' }} />
@@ -112,9 +110,7 @@ function ToolUseBlock({ tool }) {
     <div className="rounded-lg overflow-hidden" style={{ background: 'var(--bg-spotlight)', border: '1px solid var(--border-secondary)' }}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-3.5 py-2 text-[12px] transition-colors duration-200"
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-container)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        className="w-full flex items-center gap-2 px-3.5 py-2 text-[12px] transition-colors duration-200 hover:bg-[var(--bg-container)]"
       >
         {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         <Wrench size={11} style={{ color: 'var(--primary)' }} />

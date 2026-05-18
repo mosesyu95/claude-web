@@ -23,23 +23,19 @@ export default function ReplayOverlay({ replay, onResume, onClose }) {
         <div className="flex items-center gap-1.5">
           <button
             onClick={onResume}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-medium rounded-lg transition-colors duration-200"
+            className="flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-medium rounded-lg transition-colors duration-200 hover-btn-primary"
             style={{
               background: 'var(--primary)',
               color: 'var(--text-inverse)',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-hover)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--primary)'}
           >
             <Play size={12} />
             Resume
           </button>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md transition-colors"
+            className="p-1.5 rounded-md transition-colors hover-bg-spotlight-text"
             style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-spotlight)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)' }}
           >
             <X size={16} />
           </button>
