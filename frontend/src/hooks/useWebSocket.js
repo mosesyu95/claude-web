@@ -1,9 +1,10 @@
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useState } from 'react'
 import { createWebSocket } from '../api'
 
 export function useWebSocket() {
   const wsRef = useRef(null)
   const handlersRef = useRef({})
+  const [wsState, setWsState] = useState('idle')
 
   const connect = useCallback((params, handlers = {}) => {
     if (wsRef.current) {
@@ -12,8 +13,12 @@ export function useWebSocket() {
     handlersRef.current = handlers
     const ws = createWebSocket(params)
     wsRef.current = ws
+    setWsState('connecting')
 
-    ws.onopen = () => handlers.onOpen?.()
+    ws.onopen = () => {
+      setWsState('connected')
+      handlers.onOpen?.()
+    }
     ws.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data)
@@ -22,8 +27,14 @@ export function useWebSocket() {
         handlers.onData?.(e.data)
       }
     }
-    ws.onclose = (e) => handlers.onClose?.(e)
-    ws.onerror = (e) => handlers.onError?.(e)
+    ws.onclose = (e) => {
+      setWsState('disconnected')
+      handlers.onClose?.(e)
+    }
+    ws.onerror = (e) => {
+      setWsState('disconnected')
+      handlers.onError?.(e)
+    }
 
     return ws
   }, [])
@@ -38,9 +49,10 @@ export function useWebSocket() {
   const close = useCallback(() => {
     wsRef.current?.close()
     wsRef.current = null
+    setWsState('idle')
   }, [])
 
   useEffect(() => () => close(), [close])
 
-  return { connect, send, close, wsRef }
+  return { connect, send, close, wsRef, wsState }
 }

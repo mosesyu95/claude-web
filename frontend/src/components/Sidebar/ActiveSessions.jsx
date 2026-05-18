@@ -2,9 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { sessions as sessionsApi } from '../../api'
 import { shortProject } from '../../helpers'
 import { Activity, Trash2 } from 'lucide-react'
+import { useToast } from '../common/Toast'
+import { SessionGroupSkeleton } from '../common/Skeleton'
 
 export default function ActiveSessions({ activeSessions, onResumeSession, currentSessionId }) {
+  const { showToast } = useToast()
   const [systemSessions, setSystemSessions] = useState([])
+  const [loaded, setLoaded] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState('')
   const editRef = useRef(null)
@@ -13,7 +17,10 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
     try {
       const data = await sessionsApi.activeList()
       if (data?.sessions) setSystemSessions(data.sessions)
-    } catch {}
+      setLoaded(true)
+    } catch {
+      setLoaded(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -38,7 +45,9 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
       setSystemSessions(prev => prev.map(s =>
         s.sessionId === sessionId ? { ...s, title: trimmed } : s
       ))
-    } catch {}
+    } catch {
+      showToast('Failed to rename session', 'error')
+    }
   }
 
   const handleDelete = async (sessionId, cwd) => {
@@ -47,7 +56,9 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
     try {
       await sessionsApi.delete(sessionId, dirName)
       setSystemSessions(prev => prev.filter(s => s.sessionId !== sessionId))
-    } catch {}
+    } catch {
+      showToast('Failed to delete session', 'error')
+    }
   }
 
   const groups = {}
@@ -67,6 +78,15 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
   })
 
   const groupArr = Object.values(groups)
+
+  if (!loaded) {
+    return (
+      <div className="py-1.5 px-2">
+        <SessionGroupSkeleton />
+        <SessionGroupSkeleton />
+      </div>
+    )
+  }
 
   if (groupArr.length === 0) {
     return (
@@ -98,7 +118,7 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
                 onClick={() => {
                   if (!s.isLocal) onResumeSession(s.id, s.cwd, s.title)
                 }}
-                className={`group w-full text-left px-2.5 py-2 flex items-center gap-2.5 rounded-lg text-[13px] transition-colors duration-200 mb-0.5${!isActive ? ' hover-bg-spotlight' : ''}`}
+                className={`group w-full text-left px-3 py-2.5 flex items-center gap-2.5 rounded-md text-[13px] transition-colors duration-200 mb-0.5 sidebar-item-indicator${!isActive ? ' hover-bg-spotlight' : ''}`}
                 style={{
                   color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
                   background: isActive ? 'var(--primary-bg)' : 'transparent',

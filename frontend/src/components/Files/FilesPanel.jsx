@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { files as filesApi } from '../../api'
 import { fileIcon, formatSize, timeAgo } from '../../helpers'
 import { FolderOpen, ChevronRight, ArrowLeft, X, File } from 'lucide-react'
+import { useToast } from '../common/Toast'
+import { FilesSkeleton } from '../common/Skeleton'
 
 export default function FilesPanel({ cwd }) {
+  const { showToast } = useToast()
   const [rootDir, setRootDir] = useState(null)
   const [dir, setDir] = useState(null)
   const [listing, setListing] = useState(null)
@@ -19,7 +22,9 @@ export default function FilesPanel({ cwd }) {
       const data = await filesApi.list(d, r)
       setListing(data)
       setDir(d)
-    } catch {}
+    } catch {
+      showToast('Failed to load directory', 'error')
+    }
     setLoading(false)
   }, [rootDir])
 
@@ -36,7 +41,9 @@ export default function FilesPanel({ cwd }) {
     try {
       const data = await filesApi.read(path, rootDir)
       setFileView(data)
-    } catch {}
+    } catch {
+      showToast('Failed to read file', 'error')
+    }
   }
 
   const Breadcrumbs = () => {
@@ -112,6 +119,9 @@ export default function FilesPanel({ cwd }) {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto" style={{ animation: 'fadeIn 0.2s ease' }}>
+          {loading && !listing ? (
+            <FilesSkeleton />
+          ) : (<>
           {listing?.parent && (
             <button
               onClick={() => loadDir(listing.parent)}
@@ -145,6 +155,7 @@ export default function FilesPanel({ cwd }) {
               <span className="text-[12px]">Empty directory</span>
             </div>
           )}
+          </>)}
         </div>
       )}
     </div>

@@ -20,17 +20,17 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
         }}
       >
         {/* Logo */}
-        <div className="pt-4 pb-3">
+        <div className="pt-5 pb-3">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center"
             style={{ background: 'var(--primary)' }}
           >
-            <Bot size={16} className="text-white" />
+            <Bot size={16} style={{ color: 'var(--text-inverse)' }} />
           </div>
         </div>
 
         {/* Nav icons */}
-        <div className="flex flex-col items-center gap-1 mb-3">
+        <div className="flex flex-col items-center gap-1.5 mb-3">
           <button
             onClick={() => { setSidebarTab('sessions'); onToggleCollapse() }}
             className={`relative w-9 h-9 rounded-lg flex items-center justify-center transition-colors${sidebarTab !== 'sessions' ? ' hover-bg-spotlight' : ''}`}
@@ -67,7 +67,7 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
         <div className="flex-1" />
 
         {/* Bottom actions */}
-        <div className="flex flex-col items-center gap-1 pb-4">
+        <div className="flex flex-col items-center gap-1.5 pb-5">
           <button
             onClick={cycleTheme}
             className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors hover-bg-spotlight-text"
@@ -107,14 +107,14 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
       }}
     >
       {/* Header */}
-      <div className="px-4 pt-4 pb-3">
+      <div className="px-4 pt-5 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
               className="w-7 h-7 rounded-lg flex items-center justify-center"
               style={{ background: 'var(--primary)' }}
             >
-              <Bot size={15} className="text-white" />
+              <Bot size={15} style={{ color: 'var(--text-inverse)' }} />
             </div>
             <div>
               <h1 className="text-[14px] font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>Claude</h1>
@@ -156,7 +156,7 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
           <button
             key={tab}
             onClick={() => setSidebarTab(tab)}
-            className="flex-1 py-1 text-[12px] font-medium capitalize rounded-md transition-all duration-200"
+            className="flex-1 py-1.5 text-[11px] font-medium capitalize rounded-md transition-all duration-200"
             style={{
               color: sidebarTab === tab ? 'var(--primary)' : 'var(--text-tertiary)',
               background: sidebarTab === tab ? 'var(--bg-elevated)' : 'transparent',

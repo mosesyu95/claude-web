@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { sessions as sessionsApi } from '../../api'
 import { X, FolderOpen, Plus, ChevronRight, ArrowLeft, Search, FolderPlus } from 'lucide-react'
+import { useToast } from '../common/Toast'
 
 export default function NewSessionDialog({ onStart, onClose }) {
+  const { showToast } = useToast()
   const [roots, setRoots] = useState([])
   const [currentPath, setCurrentPath] = useState('')
   const [entries, setEntries] = useState([])
@@ -20,6 +22,8 @@ export default function NewSessionDialog({ onStart, onClose }) {
       if (dirs.length === 1) {
         navigateTo(dirs[0])
       }
+    }).catch(() => {
+      showToast('Failed to load directories', 'error')
     })
   }, [])
 
@@ -32,7 +36,10 @@ export default function NewSessionDialog({ onStart, onClose }) {
     try {
       const data = await sessionsApi.ls(dir)
       setEntries(data?.entries || [])
-    } catch { setEntries([]) }
+    } catch {
+      setEntries([])
+      showToast('Failed to list directory', 'error')
+    }
     setLoading(false)
   }, [])
 
@@ -53,7 +60,9 @@ export default function NewSessionDialog({ onStart, onClose }) {
         setShowNewFolder(false)
         navigateTo(currentPath)
       }
-    } catch {}
+    } catch {
+      showToast('Failed to create folder', 'error')
+    }
   }, [newFolder, currentPath, navigateTo])
 
   useEffect(() => {

@@ -1,11 +1,8 @@
 export default function TypingIndicator() {
   return (
-    <div className="flex justify-start">
-      <div
-        className="px-4 py-3 rounded-lg"
-        style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-secondary)' }}
-      >
-        <div className="flex gap-1.5">
+    <div className="flex justify-start" style={{ animation: 'fadeIn 0.3s ease' }}>
+      <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg" style={{ background: 'var(--bg-container)' }}>
+        <div className="flex gap-1">
           {[0, 1, 2].map(i => (
             <div
               key={i}
@@ -18,6 +15,7 @@ export default function TypingIndicator() {
             />
           ))}
         </div>
+        <span className="text-[11px]" style={{ color: 'var(--text-quaternary)' }}>thinking...</span>
       </div>
     </div>
   )

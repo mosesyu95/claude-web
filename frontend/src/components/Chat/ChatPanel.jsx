@@ -1,11 +1,12 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { MessageSquare, FolderOpen, Hash } from 'lucide-react'
+import { MessageSquare, FolderOpen, Hash, Plus, Clock, Keyboard } from 'lucide-react'
 import { shortProject } from '../../helpers'
 import ChatBubble from './ChatBubble'
 import ChatInput from './ChatInput'
 import TypingIndicator from './TypingIndicator'
+import { ChatSkeleton } from '../common/Skeleton'
 
-export default function ChatPanel({ session, messages, status, onSend, onDetach, onKill, onStartNew }) {
+export default function ChatPanel({ session, messages, status, onSend, onDetach, onKill, onStartNew, recentSessions }) {
   const messagesRef = useRef(null)
 
   useEffect(() => {
@@ -20,27 +21,91 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
 
   if (!session) {
     return (
-      <div className="h-full flex flex-col items-center justify-center gap-5" style={{ animation: 'fadeIn 0.5s ease' }}>
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center"
-          style={{ background: 'var(--primary-bg)', border: '1px solid var(--primary-border)' }}
-        >
-          <MessageSquare size={28} style={{ color: 'var(--primary)' }} />
+      <div className="h-full flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
+        <div className="w-full max-w-[480px] px-6" style={{ animation: 'fadeIn 0.5s ease' }}>
+          {/* Brand */}
+          <div className="text-center mb-10">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
+              style={{
+                background: 'var(--primary-bg)',
+                border: '1px solid var(--primary-border)',
+                boxShadow: '0 0 24px rgba(212, 149, 107, 0.08)',
+              }}
+            >
+              <MessageSquare size={24} style={{ color: 'var(--primary)' }} />
+            </div>
+            <h1
+              className="text-[22px] font-bold tracking-tight mb-1.5"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Claude Web Console
+            </h1>
+            <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>
+              AI-powered coding assistant in your browser
+            </p>
+          </div>
+
+          {/* Quick actions */}
+          <div className="space-y-2 mb-8">
+            <button
+              onClick={onStartNew}
+              className="welcome-shortcut w-full"
+            >
+              <div
+                className="w-8 h-8 rounded-md flex items-center justify-center shrink-0"
+                style={{ background: 'var(--primary)', color: 'var(--text-inverse)' }}
+              >
+                <Plus size={16} />
+              </div>
+              <div className="text-left min-w-0">
+                <div className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>New Session</div>
+                <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>Start a fresh coding session</div>
+              </div>
+              <kbd
+                className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0"
+                style={{ background: 'var(--bg-spotlight)', color: 'var(--text-quaternary)', border: '1px solid var(--border-secondary)' }}
+              >
+                Ctrl+Shift+N
+              </kbd>
+            </button>
+
+            <button
+              onClick={onStartNew}
+              className="welcome-shortcut w-full"
+            >
+              <div
+                className="w-8 h-8 rounded-md flex items-center justify-center shrink-0"
+                style={{ background: 'var(--bg-spotlight)', color: 'var(--text-secondary)' }}
+              >
+                <Clock size={16} />
+              </div>
+              <div className="text-left min-w-0">
+                <div className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>Recent Sessions</div>
+                <div className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>View session history in sidebar</div>
+              </div>
+              <kbd
+                className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded shrink-0"
+                style={{ background: 'var(--bg-spotlight)', color: 'var(--text-quaternary)', border: '1px solid var(--border-secondary)' }}
+              >
+                Ctrl+B
+              </kbd>
+            </button>
+          </div>
+
+          {/* Keyboard shortcuts */}
+          <div
+            className="flex items-center justify-center gap-4 text-[11px]"
+            style={{ color: 'var(--text-quaternary)' }}
+          >
+            <span className="flex items-center gap-1.5">
+              <Keyboard size={11} />
+              <span>Ctrl+1-5 switch tabs</span>
+            </span>
+            <span style={{ color: 'var(--border-secondary)' }}>|</span>
+            <span>Esc close dialogs</span>
+          </div>
         </div>
-        <div className="text-center">
-          <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Welcome to Claude</h2>
-          <p className="text-[13px]" style={{ color: 'var(--text-tertiary)' }}>Start a new session to begin coding with AI</p>
-        </div>
-        <button
-          onClick={onStartNew}
-          className="px-5 py-2 text-[13px] font-medium rounded-lg transition-colors duration-200 hover-btn-primary"
-          style={{
-            background: 'var(--primary)',
-            color: 'var(--text-inverse)',
-          }}
-        >
-          Start New Session
-        </button>
       </div>
     )
   }
@@ -100,14 +165,25 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
       </div>
 
       {/* Messages */}
-      <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-4">
-        <div className="max-w-[800px] mx-auto space-y-4">
-          {messages.map((turn, i) => (
-            <div key={i} style={{ animation: `fadeIn 0.3s ease ${Math.min(i * 30, 200)}ms both` }}>
-              <ChatBubble turn={turn} />
+      <div ref={messagesRef} className="flex-1 overflow-y-auto">
+        <div className="max-w-[800px] mx-auto">
+          {messages.length === 0 && status === 'idle' ? (
+            <ChatSkeleton />
+          ) : (
+            <div style={{ padding: '24px 24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {messages.map((turn, i) => {
+                const key = turn.timestamp
+                  ? `${turn.role}-${turn.timestamp}`
+                  : `${turn.role}-${turn.parts?.[0]?.text?.slice(0, 30) || ''}-${i}`
+                return (
+                  <div key={key}>
+                    <ChatBubble turn={turn} />
+                  </div>
+                )
+              })}
+              {status === 'busy' && <TypingIndicator />}
             </div>
-          ))}
-          {status === 'busy' && <TypingIndicator />}
+          )}
         </div>
       </div>
 

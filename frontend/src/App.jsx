@@ -1,7 +1,12 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useTheme } from './hooks/useTheme'
 import { useWebSocket } from './hooks/useWebSocket'
-import { sessions as sessionsApi } from './api'
+import { useChat } from './hooks/useChat'
+import { useSession } from './hooks/useSession'
+import { useKeyboard } from './hooks/useKeyboard'
+import { useReplay } from './hooks/useReplay'
+import { ToastProvider } from './components/common/Toast'
+import ConnectionBar from './components/common/ConnectionBar'
 import Sidebar from './components/Sidebar/Sidebar'
 import ChatPanel from './components/Chat/ChatPanel'
 import RawTerminal from './components/Terminal/RawTerminal'
@@ -23,219 +28,54 @@ const MAIN_TABS = [
 export default function App() {
   const { theme, effective, cycleTheme } = useTheme()
   const wsHook = useWebSocket()
-
-  const [activeMainTab, setActiveMainTab] = useState('chat')
-  const [showNewSession, setShowNewSession] = useState(false)
-  const [activeSessions, setActiveSessions] = useState(new Map())
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try { return localStorage.getItem('sidebar-collapsed') === 'true' } catch { return false }
-  })
-
-  const [chatSession, setChatSession] = useState(null)
-  const [chatMessages, setChatMessages] = useState([])
-  const [chatStatus, setChatStatus] = useState('idle')
-  const chatPollRef = useRef(null)
-  const chatRenderedRef = useRef(0)
-
-  const [replay, setReplay] = useState(null)
   const rawTermRef = useRef(null)
+  const chat = useChat()
+  const session = useSession(wsHook, chat, rawTermRef)
+  const kb = useKeyboard()
+  const replay = useReplay(session.resume)
 
-  const addLocalSession = useCallback((id, data) => {
-    setActiveSessions(prev => {
-      const next = new Map(prev)
-      next.set(id, { ...data, local: true })
-      return next
-    })
-  }, [])
+  const handleStartNew = (cwd) => {
+    session.startNew(cwd)
+    kb.setShowNewSession(false)
+    kb.setActiveTab('chat')
+  }
 
-  const startNewSession = useCallback((cwd) => {
-    setChatMessages([])
-    chatRenderedRef.current = 0
-    setChatStatus('idle')
-
-    const ws = wsHook.connect(
-      { action: 'new', cwd },
-      {
-        onMessage: (msg) => {
-          if (msg.type === 'session-started') {
-            const info = { sessionId: msg.sessionId, cwd, title: 'New Session' }
-            setChatSession(info)
-            addLocalSession(msg.sessionId, info)
-            discoverSession(cwd, msg.sessionId)
-          } else if (msg.type === 'session-timeout') {
-            setChatStatus('idle')
-          } else if (msg.type === 'pty-exit') {
-            setChatStatus('idle')
-            if (chatPollRef.current) clearInterval(chatPollRef.current)
-          }
-        },
-        onOpen: () => {
-          rawTermRef.current?.connectWs(ws)
-        },
-      }
-    )
-    setShowNewSession(false)
-    setActiveMainTab('chat')
-  }, [wsHook, addLocalSession])
-
-  const resumeSession = useCallback((sessionId, cwd, title) => {
-    setChatMessages([])
-    chatRenderedRef.current = 0
-    setChatStatus('idle')
-
-    const ws = wsHook.connect(
-      { action: 'resume', sessionId, cwd },
-      {
-        onMessage: (msg) => {
-          if (msg.type === 'session-started') {
-            setChatSession({ sessionId, cwd, title: title || 'Resumed Session' })
-            addLocalSession(sessionId, { sessionId, cwd, title })
-            startChatPoll(sessionId)
-          } else if (msg.type === 'session-timeout') {
-            setChatStatus('idle')
-          } else if (msg.type === 'pty-exit') {
-            setChatStatus('idle')
-            if (chatPollRef.current) clearInterval(chatPollRef.current)
-          }
-        },
-        onOpen: () => {
-          rawTermRef.current?.connectWs(ws)
-        },
-      }
-    )
-    setReplay(null)
-    setActiveMainTab('chat')
-  }, [wsHook, addLocalSession])
-
-  const discoverSession = useCallback((cwd, sessionId) => {
-    let attempts = 0
-    const timer = setInterval(async () => {
-      attempts++
-      if (attempts > 10) { clearInterval(timer); return }
-      try {
-        const data = await sessionsApi.findRecent(cwd, Date.now() - 30000)
-        if (data?.sessionId) {
-          clearInterval(timer)
-          setChatSession(prev => prev ? { ...prev, sessionId: data.sessionId } : prev)
-          startChatPoll(data.sessionId)
-        }
-      } catch {}
-    }, 2000)
-  }, [])
-
-  const startChatPoll = useCallback((sessionId) => {
-    if (chatPollRef.current) clearInterval(chatPollRef.current)
-    chatPollRef.current = setInterval(async () => {
-      try {
-        const data = await sessionsApi.conversation(sessionId)
-        if (data?.turns && data.turns.length > chatRenderedRef.current) {
-          setChatMessages(data.turns)
-          chatRenderedRef.current = data.turns.length
-        }
-      } catch {}
-    }, 3000)
-  }, [])
-
-  const sendChatMessage = useCallback((text) => {
-    if (!text.trim()) return
-    wsHook.send({ type: 'pty-input', data: text + '\n' })
-    setChatStatus('busy')
-    setChatMessages(prev => [...prev, { role: 'user', parts: [{ type: 'text', text }] }])
-  }, [wsHook])
-
-  const detachSession = useCallback(() => {
-    wsHook.close()
-    setChatSession(null)
-    setChatMessages([])
-    chatRenderedRef.current = 0
-    if (chatPollRef.current) clearInterval(chatPollRef.current)
-    rawTermRef.current?.disconnect()
-    setActiveMainTab(prev => (prev === 'raw' || prev === 'git' || prev === 'files') ? 'chat' : prev)
-  }, [wsHook])
-
-  const killSession = useCallback(() => {
-    wsHook.send({ type: 'pty-input', data: '\x03' })
-    setTimeout(() => wsHook.send({ type: 'pty-input', data: '\x03' }), 1000)
-    setTimeout(() => {
-      wsHook.close()
-      setChatSession(null)
-      setChatMessages([])
-      chatRenderedRef.current = 0
-      if (chatPollRef.current) clearInterval(chatPollRef.current)
-      rawTermRef.current?.disconnect()
-    }, 2000)
-  }, [wsHook])
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'N') {
-        e.preventDefault()
-        setShowNewSession(true)
-      }
-      if (e.ctrlKey && e.key === 'b') {
-        e.preventDefault()
-        setSidebarCollapsed(prev => {
-          const next = !prev
-          try { localStorage.setItem('sidebar-collapsed', next) } catch {}
-          return next
-        })
-      }
-      // Ctrl+1-5 for tab switching
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key >= '1' && e.key <= '5') {
-        const tabKeys = ['chat', 'raw', 'git', 'files', 'bash']
-        const idx = parseInt(e.key) - 1
-        if (tabKeys[idx]) {
-          e.preventDefault()
-          setActiveMainTab(tabKeys[idx])
-        }
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
-
-  useEffect(() => () => {
-    if (chatPollRef.current) clearInterval(chatPollRef.current)
-  }, [])
+  const handleResume = (sessionId, cwd, title) => {
+    session.resume(sessionId, cwd, title)
+    replay.closeReplay()
+    kb.setActiveTab('chat')
+  }
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <ToastProvider>
+    <div className="flex h-full overflow-hidden relative">
+      <ConnectionBar wsState={wsHook.wsState} />
+
       <Sidebar
         theme={theme}
         effective={effective}
         cycleTheme={cycleTheme}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => {
-          setSidebarCollapsed(prev => {
-            const next = !prev
-            try { localStorage.setItem('sidebar-collapsed', next) } catch {}
-            return next
-          })
-        }}
-        onNewSession={() => setShowNewSession(true)}
-        activeSessions={activeSessions}
-        onResumeSession={resumeSession}
-        currentSessionId={chatSession?.sessionId}
-        onOpenConversation={(sessionId, projectDir, cwd, title) => {
-          sessionsApi.conversation(sessionId).then(data => {
-            setReplay({ sessionId, projectDir, cwd, title, turns: data?.turns || [] })
-          })
-        }}
+        collapsed={kb.sidebarCollapsed}
+        onToggleCollapse={kb.toggleSidebar}
+        onNewSession={() => kb.setShowNewSession(true)}
+        activeSessions={session.activeSessions}
+        onResumeSession={handleResume}
+        currentSessionId={session.session?.sessionId}
+        onOpenConversation={replay.openReplay}
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Tab bar */}
         <div className="flex items-center px-3 shrink-0"
           style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-secondary)' }}>
           {MAIN_TABS.map(tab => {
             const Icon = tab.icon
-            const active = activeMainTab === tab.key
+            const active = kb.activeTab === tab.key
             const needsSession = tab.key === 'raw' || tab.key === 'git' || tab.key === 'files'
-            const disabled = needsSession && !chatSession
+            const disabled = needsSession && !session.session
             return (
               <button
                 key={tab.key}
-                onClick={() => { if (!disabled) setActiveMainTab(tab.key) }}
+                onClick={() => { if (!disabled) kb.setActiveTab(tab.key) }}
                 className="relative flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors duration-200"
                 style={{
                   color: disabled ? 'var(--text-quaternary)' : active ? 'var(--primary)' : 'var(--text-tertiary)',
@@ -256,44 +96,44 @@ export default function App() {
           })}
         </div>
 
-        {/* Tab panels — use absolute+visibility so xterm containers always have dimensions */}
         <div className="flex-1 overflow-hidden relative" style={{ background: 'var(--bg-base)' }}>
-          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'chat' ? 'visible' : 'hidden', zIndex: activeMainTab === 'chat' ? 1 : 0 }}>
+          <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'chat' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'chat' ? 1 : 0 }}>
             <ChatPanel
-              session={chatSession}
-              messages={chatMessages}
-              status={chatStatus}
-              onSend={sendChatMessage}
-              onDetach={detachSession}
-              onKill={killSession}
-              onStartNew={() => setShowNewSession(true)}
+              session={session.session}
+              messages={chat.messages}
+              status={chat.status}
+              onSend={session.send}
+              onDetach={session.detach}
+              onKill={session.kill}
+              onStartNew={() => kb.setShowNewSession(true)}
             />
           </div>
-          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'raw' ? 'visible' : 'hidden', zIndex: activeMainTab === 'raw' ? 1 : 0 }}>
+          <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'raw' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'raw' ? 1 : 0 }}>
             <RawTerminal ref={rawTermRef} theme={effective} />
           </div>
-          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'git' ? 'visible' : 'hidden', zIndex: activeMainTab === 'git' ? 1 : 0 }}>
-            <GitPanel cwd={chatSession?.cwd} />
+          <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'git' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'git' ? 1 : 0 }}>
+            <GitPanel cwd={session.session?.cwd} />
           </div>
-          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'files' ? 'visible' : 'hidden', zIndex: activeMainTab === 'files' ? 1 : 0 }}>
-            <FilesPanel cwd={chatSession?.cwd} />
+          <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'files' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'files' ? 1 : 0 }}>
+            <FilesPanel cwd={session.session?.cwd} />
           </div>
-          <div className="absolute inset-0" style={{ visibility: activeMainTab === 'bash' ? 'visible' : 'hidden', zIndex: activeMainTab === 'bash' ? 1 : 0 }}>
-            <BashTerminal cwd={chatSession?.cwd} theme={effective} active={activeMainTab === 'bash'} />
+          <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'bash' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'bash' ? 1 : 0 }}>
+            <BashTerminal cwd={session.session?.cwd} theme={effective} active={kb.activeTab === 'bash'} />
           </div>
         </div>
       </main>
 
-      {showNewSession && (
-        <NewSessionDialog onStart={startNewSession} onClose={() => setShowNewSession(false)} />
+      {kb.showNewSession && (
+        <NewSessionDialog onStart={handleStartNew} onClose={() => kb.setShowNewSession(false)} />
       )}
-      {replay && (
+      {replay.replay && (
         <ReplayOverlay
-          replay={replay}
-          onResume={() => resumeSession(replay.sessionId, replay.cwd, replay.title)}
-          onClose={() => setReplay(null)}
+          replay={replay.replay}
+          onResume={replay.resumeFromReplay}
+          onClose={replay.closeReplay}
         />
       )}
     </div>
+    </ToastProvider>
   )
 }

@@ -2,8 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { sessions as sessionsApi } from '../../api'
 import { shortProject, timeAgo } from '../../helpers'
 import { ChevronDown, ChevronRight, Play, FolderClock, Trash2 } from 'lucide-react'
+import { useToast } from '../common/Toast'
+import { SessionGroupSkeleton } from '../common/Skeleton'
 
 export default function History({ onOpenConversation, onResumeSession }) {
+  const { showToast } = useToast()
   const [projects, setProjects] = useState([])
   const [expanded, setExpanded] = useState({})
   const [loaded, setLoaded] = useState(false)
@@ -15,8 +18,11 @@ export default function History({ onOpenConversation, onResumeSession }) {
     try {
       const data = await sessionsApi.projects()
       if (data?.projects) setProjects(data.projects)
+    } catch {
+      showToast('Failed to load history', 'error')
+    } finally {
       setLoaded(true)
-    } catch {}
+    }
   }, [])
 
   useEffect(() => {
@@ -45,7 +51,9 @@ export default function History({ onOpenConversation, onResumeSession }) {
           s.sessionId === sessionId ? { ...s, title: trimmed } : s
         ),
       })))
-    } catch {}
+    } catch {
+      showToast('Failed to rename session', 'error')
+    }
   }
 
   const handleDelete = async (sessionId, dirName) => {
@@ -56,13 +64,17 @@ export default function History({ onOpenConversation, onResumeSession }) {
         ...p,
         sessions: p.sessions.filter(s => s.sessionId !== sessionId),
       })).filter(p => p.sessions.length > 0))
-    } catch {}
+    } catch {
+      showToast('Failed to delete session', 'error')
+    }
   }
 
   if (!loaded) {
     return (
-      <div className="p-3">
-        <div className="h-4 rounded-md animate-pulse" style={{ background: 'var(--bg-spotlight)' }} />
+      <div className="py-1.5 px-2">
+        <SessionGroupSkeleton />
+        <SessionGroupSkeleton />
+        <SessionGroupSkeleton />
       </div>
     )
   }
@@ -104,7 +116,7 @@ export default function History({ onOpenConversation, onResumeSession }) {
               {project.sessions.map(session => (
                 <div
                   key={session.sessionId}
-                  className="group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-colors duration-200 hover-bg-spotlight-text"
+                  className="group flex items-center gap-2 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-200 hover-bg-spotlight-text sidebar-item-indicator"
                   style={{ color: 'var(--text-tertiary)' }}
                   onClick={() => onOpenConversation(session.sessionId, project.projectPath, project.projectPath, session.title)}
                 >

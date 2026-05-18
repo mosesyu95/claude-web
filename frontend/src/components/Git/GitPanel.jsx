@@ -3,8 +3,11 @@ import { git as gitApi } from '../../api'
 import { timeAgo } from '../../helpers'
 import { GitBranch, ArrowLeft, FileCode, Plus, Minus, CircleDot } from 'lucide-react'
 import DiffViewer from './DiffViewer'
+import { useToast } from '../common/Toast'
+import { GitSkeleton } from '../common/Skeleton'
 
 export default function GitPanel({ cwd }) {
+  const { showToast } = useToast()
   const [overview, setOverview] = useState(null)
   const [loading, setLoading] = useState(false)
   const [diff, setDiff] = useState(null)
@@ -27,8 +30,9 @@ export default function GitPanel({ cwd }) {
         untracked: statusRes?.untracked || [],
         commits: logRes?.commits || [],
       })
-    } catch (e) {
+    } catch {
       setOverview(null)
+      showToast('Failed to load git info', 'error')
     }
     setLoading(false)
   }, [dir])
@@ -39,20 +43,24 @@ export default function GitPanel({ cwd }) {
     try {
       const data = await gitApi.diff(dir, file, staged)
       setDiff({ files: data?.files || [], title: file })
-    } catch {}
+    } catch {
+      showToast('Failed to load diff', 'error')
+    }
   }
 
   const showCommitDiff = async (commit) => {
     try {
       const data = await gitApi.diff(dir, null, false, commit)
       setDiff({ files: data?.files || [], title: commit?.slice(0, 8) })
-    } catch {}
+    } catch {
+      showToast('Failed to load commit diff', 'error')
+    }
   }
 
   if (loading && !overview) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ color: 'var(--text-quaternary)' }}>
-        <div className="text-[13px]">Loading git info...</div>
+      <div className="h-full overflow-y-auto">
+        <GitSkeleton />
       </div>
     )
   }
