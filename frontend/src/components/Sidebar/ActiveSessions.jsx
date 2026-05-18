@@ -1,22 +1,57 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { sessions as sessionsApi } from '../../api'
-import { shortProject } from '../../helpers'
-import { Activity, Trash2 } from 'lucide-react'
+import { shortProject, timeAgo } from '../../helpers'
+import { ChevronDown, ChevronRight, Activity, Trash2 } from 'lucide-react'
 import { useToast } from '../common/Toast'
 import { SessionGroupSkeleton } from '../common/Skeleton'
 
-export default function ActiveSessions({ activeSessions, onResumeSession, currentSessionId }) {
+export default function ActiveSessions({ activeSessions, onResumeSession, onOpenReadOnly, currentSessionId }) {
   const { showToast } = useToast()
   const [systemSessions, setSystemSessions] = useState([])
+  const [projects, setProjects] = useState([])
+  const [expanded, setExpanded] = useState({})
   const [loaded, setLoaded] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState('')
   const editRef = useRef(null)
+  const expandedRef = useRef({})
 
-  const loadSystemSessions = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
       const data = await sessionsApi.activeList()
-      if (data?.sessions) setSystemSessions(data.sessions)
+      const active = data?.sessions || []
+      setSystemSessions(active)
+
+      const cwds = [...new Set(active.map(s => s.cwd).filter(Boolean))]
+      const results = await Promise.all(
+        cwds.map(async (cwd) => {
+          const dirName = cwd.replace(/\//g, '-')
+          try {
+            const d = await sessionsApi.projectSessions(dirName)
+            return { dirName, projectPath: cwd, sessions: d?.sessions || [] }
+          } catch { return null }
+        })
+      )
+
+      const activeIds = new Set(active.map(s => s.sessionId))
+      const projectList = results
+        .filter(p => p && p.sessions.some(s => activeIds.has(s.sessionId)))
+        .map(p => ({
+          ...p,
+          sessions: p.sessions
+            .filter(s => activeIds.has(s.sessionId) || s.messageCount > 0)
+            .map(s => ({ ...s, isActive: activeIds.has(s.sessionId) }))
+            .sort((a, b) => (a.isActive ? 0 : 1) - (b.isActive ? 0 : 1) || new Date(b.lastModified) - new Date(a.lastModified))
+        }))
+
+      setProjects(projectList)
+
+      const newExpanded = { ...expandedRef.current }
+      projectList.forEach(p => {
+        if (!(p.dirName in newExpanded)) newExpanded[p.dirName] = true
+      })
+      expandedRef.current = newExpanded
+      setExpanded(newExpanded)
       setLoaded(true)
     } catch {
       setLoaded(true)
@@ -24,10 +59,18 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
   }, [])
 
   useEffect(() => {
-    loadSystemSessions()
-    const timer = setInterval(loadSystemSessions, 5000)
+    load()
+    const timer = setInterval(load, 5000)
     return () => clearInterval(timer)
-  }, [loadSystemSessions])
+  }, [load])
+
+  const toggleExpand = (dirName) => {
+    setExpanded(prev => {
+      const next = { ...prev, [dirName]: !prev[dirName] }
+      expandedRef.current = next
+      return next
+    })
+  }
 
   const startEdit = (sessionId, currentTitle) => {
     setEditingId(sessionId)
@@ -35,49 +78,35 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
     setTimeout(() => editRef.current?.select(), 10)
   }
 
-  const commitEdit = async (sessionId, cwd) => {
+  const commitEdit = async (sessionId, dirName) => {
     const trimmed = editValue.trim()
     setEditingId(null)
     if (!trimmed) return
-    const dirName = cwd ? cwd.replace(/\//g, '-') : null
     try {
       await sessionsApi.rename(sessionId, trimmed, dirName)
-      setSystemSessions(prev => prev.map(s =>
-        s.sessionId === sessionId ? { ...s, title: trimmed } : s
-      ))
+      setProjects(prev => prev.map(p => ({
+        ...p,
+        sessions: p.sessions.map(s =>
+          s.sessionId === sessionId ? { ...s, title: trimmed } : s
+        ),
+      })))
     } catch {
       showToast('Failed to rename session', 'error')
     }
   }
 
-  const handleDelete = async (sessionId, cwd) => {
+  const handleDelete = async (sessionId, dirName) => {
     if (!window.confirm('Delete this session? This cannot be undone.')) return
-    const dirName = cwd ? cwd.replace(/\//g, '-') : null
     try {
       await sessionsApi.delete(sessionId, dirName)
-      setSystemSessions(prev => prev.filter(s => s.sessionId !== sessionId))
+      setProjects(prev => prev.map(p => ({
+        ...p,
+        sessions: p.sessions.filter(s => s.sessionId !== sessionId),
+      })).filter(p => p.sessions.length > 0))
     } catch {
       showToast('Failed to delete session', 'error')
     }
   }
-
-  const groups = {}
-  const localArr = Array.from(activeSessions.entries())
-
-  localArr.forEach(([id, s]) => {
-    const key = s.cwd || 'unknown'
-    if (!groups[key]) groups[key] = { cwd: key, sessions: [] }
-    groups[key].sessions.push({ ...s, id, isLocal: true })
-  })
-
-  systemSessions.forEach(s => {
-    if (localArr.some(([id]) => id === s.sessionId)) return
-    const key = s.cwd || 'unknown'
-    if (!groups[key]) groups[key] = { cwd: key, sessions: [] }
-    groups[key].sessions.push({ ...s, id: s.sessionId, isLocal: false })
-  })
-
-  const groupArr = Object.values(groups)
 
   if (!loaded) {
     return (
@@ -88,7 +117,7 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
     )
   }
 
-  if (groupArr.length === 0) {
+  if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-40" style={{ color: 'var(--text-quaternary)' }}>
         <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: 'var(--bg-spotlight)' }}>
@@ -101,76 +130,93 @@ export default function ActiveSessions({ activeSessions, onResumeSession, curren
 
   return (
     <div className="py-1.5 px-2">
-      {groupArr.map((group, gi) => (
-        <div key={group.cwd} className="mb-2" style={{ animation: `slideInRight 0.3s ease ${gi * 50}ms both` }}>
-          <div
-            className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider truncate"
-            style={{ color: 'var(--text-quaternary)' }}
+      {projects.map((project, pi) => (
+        <div key={project.dirName} style={{ animation: `slideInRight 0.3s ease ${pi * 30}ms both` }}>
+          <button
+            onClick={() => toggleExpand(project.dirName)}
+            className="w-full text-left px-2.5 py-2 flex items-center gap-1.5 rounded-lg text-[12px] font-medium transition-colors duration-200 hover-bg-spotlight"
+            style={{ color: 'var(--text-secondary)' }}
           >
-            {shortProject(group.cwd)}
-          </div>
-          {group.sessions.map(s => {
-            const isActive = currentSessionId === s.id
-            const isBusy = s.status === 'busy'
-            return (
-              <button
-                key={s.id}
-                onClick={() => {
-                  if (!s.isLocal) onResumeSession(s.id, s.cwd, s.title)
-                }}
-                className={`group w-full text-left px-3 py-2.5 flex items-center gap-2.5 rounded-md text-[13px] transition-colors duration-200 mb-0.5 sidebar-item-indicator${!isActive ? ' hover-bg-spotlight' : ''}`}
-                style={{
-                  color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                  background: isActive ? 'var(--primary-bg)' : 'transparent',
-                }}
-              >
-                <span className="relative flex-shrink-0">
-                  <span
-                    className="block w-[6px] h-[6px] rounded-full"
+            {expanded[project.dirName]
+              ? <ChevronDown size={12} style={{ color: 'var(--text-quaternary)' }} />
+              : <ChevronRight size={12} style={{ color: 'var(--text-quaternary)' }} />
+            }
+            <span className="truncate flex-1">{shortProject(project.projectPath)}</span>
+            <span
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+              style={{ color: 'var(--status-success)', background: 'var(--bg-spotlight)' }}
+            >
+              {project.sessions.filter(s => s.isActive).length}
+            </span>
+          </button>
+          {expanded[project.dirName] && (
+            <div className="ml-2 pl-2.5" style={{ borderLeft: '1px solid var(--border-secondary)' }}>
+              {project.sessions.map(s => {
+                const isActive = currentSessionId === s.sessionId
+                return (
+                  <button
+                    key={s.sessionId}
+                    onClick={() => {
+                      if (s.isActive) {
+                        onResumeSession(s.sessionId, project.projectPath, s.title)
+                      } else {
+                        onOpenReadOnly(s.sessionId, project.projectPath, project.dirName, s.title)
+                      }
+                    }}
+                    className={`group w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-md text-[13px] transition-colors duration-200 mb-0.5 sidebar-item-indicator${!isActive ? ' hover-bg-spotlight' : ''}`}
                     style={{
-                      background: isBusy ? 'var(--status-success)' : 'var(--text-quaternary)',
+                      color: isActive ? 'var(--primary)' : 'var(--text-tertiary)',
+                      background: isActive ? 'var(--primary-bg)' : 'transparent',
                     }}
-                  />
-                </span>
-                {editingId === s.id ? (
-                  <input
-                    ref={editRef}
-                    value={editValue}
-                    onChange={e => setEditValue(e.target.value)}
-                    onBlur={() => commitEdit(s.id, s.cwd)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') commitEdit(s.id, s.cwd)
-                      if (e.key === 'Escape') setEditingId(null)
-                      e.stopPropagation()
-                    }}
-                    onClick={e => e.stopPropagation()}
-                    className="flex-1 text-[13px] bg-transparent outline-none min-w-0"
-                    style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--primary)' }}
-                  />
-                ) : (
-                  <span
-                    className="truncate font-medium flex-1 min-w-0"
-                    onDoubleClick={e => { e.stopPropagation(); startEdit(s.id, s.title) }}
                   >
-                    {s.title || 'Untitled'}
-                  </span>
-                )}
-                {!s.isLocal && (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete(s.id, s.cwd)
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200 cursor-pointer hover-danger"
-                    style={{ color: 'var(--text-quaternary)' }}
-                    title="Delete"
-                  >
-                    <Trash2 size={12} />
-                  </span>
-                )}
-              </button>
-            )
-          })}
+                    <span
+                      className="block w-[6px] h-[6px] rounded-full shrink-0"
+                      style={{
+                        background: s.isActive ? 'var(--status-success)' : 'var(--text-quaternary)',
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      {editingId === s.sessionId ? (
+                        <input
+                          ref={editRef}
+                          value={editValue}
+                          onChange={e => setEditValue(e.target.value)}
+                          onBlur={() => commitEdit(s.sessionId, project.dirName)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') commitEdit(s.sessionId, project.dirName)
+                            if (e.key === 'Escape') setEditingId(null)
+                            e.stopPropagation()
+                          }}
+                          onClick={e => e.stopPropagation()}
+                          className="w-full text-[13px] bg-transparent outline-none"
+                          style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--primary)' }}
+                        />
+                      ) : (
+                        <div
+                          className="truncate font-medium"
+                          onDoubleClick={e => { e.stopPropagation(); startEdit(s.sessionId, s.title) }}
+                        >
+                          {s.title || 'Untitled'}
+                        </div>
+                      )}
+                      <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-quaternary)' }}>{timeAgo(s.lastModified)}</div>
+                    </div>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDelete(s.sessionId, project.dirName)
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity duration-200 cursor-pointer hover-danger"
+                      style={{ color: 'var(--text-quaternary)' }}
+                      title="Delete"
+                    >
+                      <Trash2 size={12} />
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       ))}
     </div>

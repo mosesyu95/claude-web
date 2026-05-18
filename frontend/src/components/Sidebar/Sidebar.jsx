@@ -6,7 +6,7 @@ import History from './History'
 const SIDEBAR_WIDTH = 272
 const SIDEBAR_COLLAPSED = 56
 
-export default function Sidebar({ theme, effective, cycleTheme, collapsed, onToggleCollapse, onNewSession, activeSessions, onResumeSession, currentSessionId, onOpenConversation }) {
+export default function Sidebar({ theme, effective, cycleTheme, collapsed, onToggleCollapse, onNewSession, activeSessions, onResumeSession, onOpenReadOnly, currentSessionId, onOpenConversation }) {
   const [sidebarTab, setSidebarTab] = useState('sessions')
 
   if (collapsed) {
@@ -174,6 +174,7 @@ export default function Sidebar({ theme, effective, cycleTheme, collapsed, onTog
           <ActiveSessions
             activeSessions={activeSessions}
             onResumeSession={onResumeSession}
+            onOpenReadOnly={onOpenReadOnly}
             currentSessionId={currentSessionId}
           />
         )}

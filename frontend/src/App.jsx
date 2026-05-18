@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { useTheme } from './hooks/useTheme'
 import { useWebSocket } from './hooks/useWebSocket'
 import { useChat } from './hooks/useChat'
@@ -15,6 +15,7 @@ import GitPanel from './components/Git/GitPanel'
 import FilesPanel from './components/Files/FilesPanel'
 import NewSessionDialog from './components/Modals/NewSessionDialog'
 import ReplayOverlay from './components/Modals/ReplayOverlay'
+import { sessions as sessionsApi } from './api'
 import { MessageSquare, Terminal, GitBranch, FolderOpen, SquareTerminal } from 'lucide-react'
 
 const MAIN_TABS = [
@@ -33,14 +34,40 @@ export default function App() {
   const session = useSession(wsHook, chat, rawTermRef)
   const kb = useKeyboard()
   const replay = useReplay(session.resume)
+  const [readOnlySession, setReadOnlySession] = useState(null)
+
+  const handleOpenReadOnly = useCallback(async (sessionId, cwd, dirName, title) => {
+    try {
+      const data = await sessionsApi.conversation(sessionId)
+      setReadOnlySession({
+        sessionId,
+        cwd,
+        title: title || 'Session',
+        messages: data?.turns || [],
+      })
+      kb.setActiveTab('chat')
+    } catch {
+      // Failed to load conversation
+    }
+  }, [kb])
+
+  const handleResumeFromReadOnly = useCallback(() => {
+    if (!readOnlySession) return
+    const { sessionId, cwd, title } = readOnlySession
+    setReadOnlySession(null)
+    session.resume(sessionId, cwd, title)
+    kb.setActiveTab('chat')
+  }, [readOnlySession, session.resume, kb])
 
   const handleStartNew = (cwd) => {
+    setReadOnlySession(null)
     session.startNew(cwd)
     kb.setShowNewSession(false)
     kb.setActiveTab('chat')
   }
 
   const handleResume = (sessionId, cwd, title) => {
+    setReadOnlySession(null)
     session.resume(sessionId, cwd, title)
     replay.closeReplay()
     kb.setActiveTab('chat')
@@ -60,6 +87,7 @@ export default function App() {
         onNewSession={() => kb.setShowNewSession(true)}
         activeSessions={session.activeSessions}
         onResumeSession={handleResume}
+        onOpenReadOnly={handleOpenReadOnly}
         currentSessionId={session.session?.sessionId}
         onOpenConversation={replay.openReplay}
       />
@@ -99,13 +127,15 @@ export default function App() {
         <div className="flex-1 overflow-hidden relative" style={{ background: 'var(--bg-base)' }}>
           <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'chat' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'chat' ? 1 : 0 }}>
             <ChatPanel
-              session={session.session}
-              messages={chat.messages}
-              status={chat.status}
+              session={readOnlySession || session.session}
+              messages={readOnlySession ? readOnlySession.messages : chat.messages}
+              status={readOnlySession ? 'idle' : chat.status}
               onSend={session.send}
               onDetach={session.detach}
               onKill={session.kill}
               onStartNew={() => kb.setShowNewSession(true)}
+              readOnly={!!readOnlySession}
+              onResumeSession={handleResumeFromReadOnly}
             />
           </div>
           <div className="absolute inset-0" style={{ visibility: kb.activeTab === 'raw' ? 'visible' : 'hidden', zIndex: kb.activeTab === 'raw' ? 1 : 0 }}>

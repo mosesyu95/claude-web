@@ -1,12 +1,12 @@
 import { useRef, useEffect, useMemo } from 'react'
-import { MessageSquare, FolderOpen, Hash, Plus, Clock, Keyboard } from 'lucide-react'
+import { MessageSquare, FolderOpen, Hash, Plus, Clock, Keyboard, RotateCcw } from 'lucide-react'
 import { shortProject } from '../../helpers'
 import ChatBubble from './ChatBubble'
 import ChatInput from './ChatInput'
 import TypingIndicator from './TypingIndicator'
 import { ChatSkeleton } from '../common/Skeleton'
 
-export default function ChatPanel({ session, messages, status, onSend, onDetach, onKill, onStartNew, recentSessions }) {
+export default function ChatPanel({ session, messages, status, onSend, onDetach, onKill, onStartNew, readOnly, onResumeSession }) {
   const messagesRef = useRef(null)
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
           <span
             className="w-[6px] h-[6px] rounded-full shrink-0"
             style={{
-              background: status === 'busy' ? 'var(--status-success)' : 'var(--text-quaternary)',
+              background: readOnly ? 'var(--text-quaternary)' : status === 'busy' ? 'var(--status-success)' : 'var(--text-quaternary)',
             }}
           />
           <span className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>
@@ -145,23 +145,33 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
               {messageCount}
             </span>
           )}
+          {readOnly && (
+            <span
+              className="text-[10px] font-medium shrink-0 px-1.5 py-0.5 rounded"
+              style={{ color: 'var(--text-quaternary)', background: 'var(--bg-spotlight)' }}
+            >
+              Read Only
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={onDetach}
-            className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200 hover-bg-spotlight-text"
-            style={{ color: 'var(--text-tertiary)' }}
-          >
-            Detach
-          </button>
-          <button
-            onClick={onKill}
-            className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200 hover-danger"
-            style={{ color: 'var(--status-error)' }}
-          >
-            Kill
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={onDetach}
+              className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200 hover-bg-spotlight-text"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              Detach
+            </button>
+            <button
+              onClick={onKill}
+              className="px-2.5 py-1 text-[12px] rounded-md transition-colors duration-200 hover-danger"
+              style={{ color: 'var(--status-error)' }}
+            >
+              Kill
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -187,8 +197,28 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
         </div>
       </div>
 
-      {/* Input */}
-      <ChatInput onSend={onSend} busy={status === 'busy'} />
+      {/* Input or Resume */}
+      {readOnly ? (
+        <div
+          className="shrink-0 px-5 py-4 flex justify-center"
+          style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--border-secondary)' }}
+        >
+          <button
+            onClick={onResumeSession}
+            className="flex items-center gap-2.5 px-6 py-3 rounded-xl text-[14px] font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              background: 'var(--primary)',
+              color: 'var(--text-inverse)',
+              boxShadow: '0 4px 12px rgba(212, 149, 107, 0.3)',
+            }}
+          >
+            <RotateCcw size={16} />
+            Resume Session
+          </button>
+        </div>
+      ) : (
+        <ChatInput onSend={onSend} busy={status === 'busy'} />
+      )}
     </div>
   )
 }
