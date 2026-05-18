@@ -169,6 +169,112 @@ function createSessionRouter() {
     }
   });
 
+  // Search directories by query string
+  router.get('/directories/search', (req, res) => {
+    try {
+      const q = (req.query.q || '').trim().toLowerCase();
+      if (!q) return res.json({ results: [] });
+
+      const results = [];
+      const seen = new Set();
+
+      // Build a map of project dirName -> { projectPath, sessions }
+      const projectMap = new Map();
+      if (fs.existsSync(PROJECTS_DIR)) {
+        for (const entry of fs.readdirSync(PROJECTS_DIR)) {
+          const fullPath = path.join(PROJECTS_DIR, entry);
+          if (!fs.statSync(fullPath).isDirectory()) continue;
+          const projectPath = decodeProjectDir(entry);
+          const sessionFiles = fs.readdirSync(fullPath)
+            .filter(f => f.endsWith('.jsonl') && !f.startsWith('.'))
+            .map(f => {
+              const fp = path.join(fullPath, f);
+              const stat = fs.statSync(fp);
+              const sessionId = f.replace('.jsonl', '');
+              const customTitles = loadTitles(entry);
+              const aiTitle = readAiTitle(fp);
+              return {
+                sessionId,
+                title: customTitles[sessionId] || aiTitle,
+                lastModified: stat.mtime.toISOString(),
+              };
+            })
+            .sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+
+          projectMap.set(entry, { projectPath, dirName: entry, sessions: sessionFiles });
+        }
+      }
+
+      // Search ALLOWED_DIRS and their subdirectories
+      for (const allowed of ALLOWED_DIRS) {
+        // Match the root itself
+        const rootName = path.basename(allowed);
+        if (allowed.toLowerCase().includes(q) || rootName.toLowerCase().includes(q)) {
+          if (!seen.has(allowed) && isDirAllowed(allowed)) {
+            seen.add(allowed);
+            const proj = projectMap.get(allowed.replace(/\//g, '-'));
+            results.push({
+              path: allowed,
+              name: rootName,
+              displayPath: allowed,
+              hasHistory: !!proj,
+              recentSessions: proj ? proj.sessions.slice(0, 3) : [],
+            });
+          }
+        }
+
+        // Search immediate subdirectories of allowed dirs
+        try {
+          for (const entry of fs.readdirSync(allowed)) {
+            const fullPath = path.join(allowed, entry);
+            try {
+              if (!fs.statSync(fullPath).isDirectory()) continue;
+            } catch { continue; }
+            if (seen.has(fullPath)) continue;
+            if (entry.toLowerCase().includes(q) || fullPath.toLowerCase().includes(q)) {
+              seen.add(fullPath);
+              const proj = projectMap.get(fullPath.replace(/\//g, '-'));
+              results.push({
+                path: fullPath,
+                name: entry,
+                displayPath: fullPath,
+                hasHistory: !!proj,
+                recentSessions: proj ? proj.sessions.slice(0, 3) : [],
+              });
+            }
+          }
+        } catch {}
+      }
+
+      // Search project dirs that may be outside ALLOWED_DIRS
+      for (const [dirName, proj] of projectMap) {
+        const pp = proj.projectPath;
+        if (!pp || seen.has(pp)) continue;
+        if (!isDirAllowed(pp)) continue;
+        if (pp.toLowerCase().includes(q) || path.basename(pp).toLowerCase().includes(q)) {
+          seen.add(pp);
+          results.push({
+            path: pp,
+            name: path.basename(pp),
+            displayPath: pp,
+            hasHistory: true,
+            recentSessions: proj.sessions.slice(0, 3),
+          });
+        }
+      }
+
+      // Sort: projects with history first, then alphabetically
+      results.sort((a, b) => {
+        if (a.hasHistory !== b.hasHistory) return b.hasHistory - a.hasHistory;
+        return a.path.localeCompare(b.path);
+      });
+
+      res.json({ results });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // List all projects that have sessions
   router.get('/projects', (req, res) => {
     try {

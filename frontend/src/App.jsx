@@ -154,7 +154,7 @@ export default function App() {
       </main>
 
       {kb.showNewSession && (
-        <NewSessionDialog onStart={handleStartNew} onClose={() => kb.setShowNewSession(false)} />
+        <NewSessionDialog onStart={handleStartNew} onClose={() => kb.setShowNewSession(false)} onOpenReadOnly={handleOpenReadOnly} />
       )}
       {replay.replay && (
         <ReplayOverlay
