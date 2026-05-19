@@ -27,6 +27,14 @@ const MAIN_TABS = [
 ]
 
 export default function App() {
+  return (
+    <ToastProvider>
+      <AppInner />
+    </ToastProvider>
+  )
+}
+
+function AppInner() {
   const { theme, effective, cycleTheme } = useTheme()
   const wsHook = useWebSocket()
   const rawTermRef = useRef(null)
@@ -74,7 +82,6 @@ export default function App() {
   }
 
   return (
-    <ToastProvider>
     <div className="flex h-full overflow-hidden relative">
       <ConnectionBar wsState={wsHook.wsState} />
 
@@ -164,6 +171,5 @@ export default function App() {
         />
       )}
     </div>
-    </ToastProvider>
   )
 }
