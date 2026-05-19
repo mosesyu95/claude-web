@@ -56,7 +56,28 @@ Open http://localhost:3000 in your browser.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and customize:
+### CLI Flags
+
+```bash
+claude-web [options]
+
+Options:
+  -p, --port <number>    Server port (default: 3000)
+  -t, --timeout <min>    Session idle timeout in minutes (default: 30)
+  -d, --dirs <paths>     Allowed directories, comma-separated (default: home)
+  -v, --version          Print version and exit
+  -h, --help             Print help and exit
+
+# Examples
+claude-web                          # Start on port 3000, 30min timeout
+claude-web --port 8080              # Start on port 8080
+claude-web --timeout 60             # Set timeout to 60 minutes
+claude-web --dirs /home,/projects   # Restrict to these directories
+```
+
+### Environment Variables
+
+Alternatively, copy `.env.example` to `.env`:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -64,11 +85,14 @@ Copy `.env.example` to `.env` and customize:
 | `SESSION_TIMEOUT_MS` | `1800000` | Auto-close idle sessions after this many ms (30 min) |
 | `ALLOWED_DIRS` | Home directory | Comma-separated list of allowed root directories for new sessions |
 
+Priority: CLI flags > `.env` file > defaults.
+
 ## Architecture
 
 ```
 server.js            Express + WebSocket server entry point
 src/
+  cli.js             CLI argument parser and --help
   pty-manager.js     Claude CLI PTY session management
   bash-manager.js    System shell PTY session
   session-api.js     REST API for sessions, projects, conversation, search

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 require('dotenv').config();
+const { parseArgs } = require('./src/cli');
+parseArgs();
 const express = require('express');
 const http = require('http');
 const { WebSocketServer } = require('ws');

@@ -86,7 +86,7 @@ export function useSession(wsHook, chat, rawTermRef) {
 
   const send = useCallback((text) => {
     if (!text.trim()) return
-    wsHook.send({ type: 'pty-input', data: text + '\n' })
+    wsHook.send({ type: 'pty-input', data: text + '\r' })
     chat.setStatus('busy')
     chat.addUserMessage(text)
   }, [wsHook, chat])
