@@ -30,7 +30,7 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
               style={{
                 background: 'var(--primary-bg)',
                 border: '1px solid var(--primary-border)',
-                boxShadow: '0 0 24px rgba(212, 149, 107, 0.08)',
+                boxShadow: '0 0 24px rgba(204, 120, 92, 0.08)',
               }}
             >
               <MessageSquare size={24} style={{ color: 'var(--primary)' }} />
@@ -209,7 +209,7 @@ export default function ChatPanel({ session, messages, status, onSend, onDetach,
             style={{
               background: 'var(--primary)',
               color: 'var(--text-inverse)',
-              boxShadow: '0 4px 12px rgba(212, 149, 107, 0.3)',
+              boxShadow: '0 4px 12px rgba(204, 120, 92, 0.3)',
             }}
           >
             <RotateCcw size={16} />

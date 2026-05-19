@@ -4,75 +4,84 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Primary (Warm Amber) */
-  --primary: #d4956b;
-  --primary-hover: #e0a880;
-  --primary-active: #c08058;
-  --primary-bg: rgba(212, 149, 107, 0.1);
-  --primary-border: rgba(212, 149, 107, 0.3);
+  /* Primary — Coral (#cc785c) */
+  --primary: #cc785c;
+  --primary-hover: #b96a4f;
+  --primary-active: #a9583e;
+  --primary-bg: rgba(204, 120, 92, 0.1);
+  --primary-border: rgba(204, 120, 92, 0.3);
+
+  /* Accent */
+  --accent-teal: #5db8a6;
+  --accent-amber: #e8a55a;
 
   /* Status */
-  --status-success: #52c41a;
-  --status-error: #ff4d4f;
-  --status-warning: #faad14;
-  --status-info: #d4956b;
+  --status-success: #5db872;
+  --status-error: #c64545;
+  --status-warning: #d4a017;
+  --status-info: #5db8a6;
 
   /* Typography */
   --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
-  /* Spacing (4px grid) */
+  /* Border radius */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
 
-  /* Light theme */
-  --bg-base: #fafaf9;
-  --bg-container: #f5f5f4;
-  --bg-elevated: #ffffff;
-  --bg-spotlight: #e7e5e4;
-  --bg-mask: rgba(0, 0, 0, 0.45);
+  /* Light theme — warm cream canvas */
+  --bg-base: #faf9f5;
+  --bg-container: #f5f0e8;
+  --bg-elevated: #efe9de;
+  --bg-spotlight: #e8e0d2;
+  --bg-mask: rgba(20, 20, 19, 0.45);
 
-  --border: #d6d3d1;
-  --border-secondary: #e7e5e4;
+  --border: #e6dfd8;
+  --border-secondary: #ebe6df;
   --border-focus: var(--primary);
 
-  --text-primary: rgba(0, 0, 0, 0.88);
-  --text-secondary: rgba(0, 0, 0, 0.65);
-  --text-tertiary: rgba(0, 0, 0, 0.45);
-  --text-quaternary: rgba(0, 0, 0, 0.25);
+  --text-primary: #141413;
+  --text-secondary: #3d3d3a;
+  --text-tertiary: #6c6a64;
+  --text-quaternary: #8e8b82;
   --text-inverse: #ffffff;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 16px 48px 16px rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 1px 2px 0 rgba(20, 20, 19, 0.04), 0 1px 4px -1px rgba(20, 20, 19, 0.03);
+  --shadow-md: 0 4px 12px 0 rgba(20, 20, 19, 0.06), 0 2px 4px -2px rgba(20, 20, 19, 0.04);
+  --shadow-lg: 0 8px 24px 0 rgba(20, 20, 19, 0.08), 0 4px 8px -4px rgba(20, 20, 19, 0.06);
 }
 
 .dark {
-  --primary: #d4956b;
-  --primary-hover: #e0a880;
-  --primary-active: #c08058;
-  --primary-bg: rgba(212, 149, 107, 0.12);
-  --primary-border: rgba(212, 149, 107, 0.25);
+  /* Primary — Coral (same in dark) */
+  --primary: #cc785c;
+  --primary-hover: #b96a4f;
+  --primary-active: #a9583e;
+  --primary-bg: rgba(204, 120, 92, 0.12);
+  --primary-border: rgba(204, 120, 92, 0.25);
 
-  --bg-base: #0f0f0f;
-  --bg-container: #1a1a1a;
-  --bg-elevated: #1f1f1f;
-  --bg-spotlight: #262626;
+  /* Dark theme — warm dark navy surfaces */
+  --bg-base: #181715;
+  --bg-container: #1f1e1b;
+  --bg-elevated: #252320;
+  --bg-spotlight: #252320;
   --bg-mask: rgba(0, 0, 0, 0.65);
 
-  --border: #333;
-  --border-secondary: #282828;
+  --border: #3d3a35;
+  --border-secondary: #2e2c28;
 
-  --text-primary: rgba(255, 255, 255, 0.92);
-  --text-secondary: rgba(255, 255, 255, 0.65);
-  --text-tertiary: rgba(255, 255, 255, 0.4);
-  --text-quaternary: rgba(255, 255, 255, 0.2);
-  --text-inverse: #0f0f0f;
+  --text-primary: #faf9f5;
+  --text-secondary: #c8c5be;
+  --text-tertiary: #a09d96;
+  --text-quaternary: #706d66;
+  --text-inverse: #181715;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.12), 0 1px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 6px 16px 0 rgba(0, 0, 0, 0.24), 0 3px 6px -4px rgba(0, 0, 0, 0.36), 0 9px 28px 8px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 6px 16px 0 rgba(0, 0, 0, 0.24), 0 16px 48px 16px rgba(0, 0, 0, 0.24), 0 3px 6px -4px rgba(0, 0, 0, 0.36);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 24px 0 rgba(0, 0, 0, 0.35);
 }
 
 html, body, #root {
@@ -126,16 +135,16 @@ body {
 
 /* Diff viewer */
 .diff-line-add {
-  background: rgba(82, 196, 26, 0.06);
+  background: rgba(93, 184, 114, 0.06);
 }
 .diff-line-del {
-  background: rgba(255, 77, 79, 0.06);
+  background: rgba(198, 69, 69, 0.06);
 }
 .diff-line-add .diff-line-num {
-  background: rgba(82, 196, 26, 0.12);
+  background: rgba(93, 184, 114, 0.12);
 }
 .diff-line-del .diff-line-num {
-  background: rgba(255, 77, 79, 0.12);
+  background: rgba(198, 69, 69, 0.12);
 }
 
 /* Hover utility classes */
@@ -143,7 +152,7 @@ body {
 .hover-bg-spotlight-text:hover { background: var(--bg-spotlight) !important; color: var(--text-secondary) !important; }
 .hover-primary-accent:hover { background: var(--primary-bg) !important; color: var(--primary) !important; }
 .hover-btn-primary:hover { background: var(--primary-hover) !important; }
-.hover-danger:hover { background: rgba(255,77,79,0.08) !important; color: var(--status-error) !important; }
+.hover-danger:hover { background: rgba(198, 69, 69, 0.08) !important; color: var(--status-error) !important; }
 .hover-text-primary:hover { color: var(--text-primary) !important; }
 .hover-text-accent:hover { color: var(--primary) !important; }
 .hover-border-accent:hover { border-color: var(--primary) !important; color: var(--primary) !important; }
@@ -190,7 +199,7 @@ body {
   right: 8px;
   padding: 4px 8px;
   font-size: 11px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   background: var(--bg-spotlight);
   color: var(--text-tertiary);
   border: none;
@@ -319,9 +328,9 @@ body {
 }
 
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(212, 149, 107, 0.4); }
-  50% { box-shadow: 0 0 0 4px rgba(212, 149, 107, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(212, 149, 107, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(204, 120, 92, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(204, 120, 92, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 120, 92, 0); }
 }
 
 @keyframes connection-slide {
